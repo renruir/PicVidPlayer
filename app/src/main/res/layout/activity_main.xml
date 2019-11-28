@@ -6,17 +6,9 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.stx.xhb.xbanner.XBanner
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/xbanner"
+    <com.ctftek.player.banner.Banner
+        android:id="@+id/banner"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:AutoPlayTime="3000"
-        app:pointsContainerBackground="#44aaaaaa"
-        app:pointsPosition="RIGHT"
-        app:tipTextSize="12sp"
-        app:isShowNumberIndicator="true"
-        app:isShowIndicatorOnlyOne="true"
-        app:pageChangeDuration="800"/>
+        android:layout_height="match_parent" />
 
 </FrameLayout>
