@@ -2,6 +2,7 @@ package com.ctftek.player;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -22,7 +24,9 @@ import com.ctftek.player.banner.Banner;
 import com.xdandroid.hellodaemon.DaemonEnv;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE };
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     //view
     private Banner banner;
@@ -54,38 +58,34 @@ public class MainActivity extends AppCompatActivity {
         initView();
 //        isContainResource("/mnt/usb_storage/USB_DISK2");//for test
 //        updateFileData();
-//
     }
 
-    private void initView(){
+
+    private void initView() {
         banner = (Banner) findViewById(R.id.banner);
         banner.setDataList(fileList);
-        banner.setImgDelyed(5000);
+        banner.setImgDelyed(2000);
         banner.startBanner();
         banner.startAutoPlay();
     }
 
-    private void initDate(){
-        File file = new File(Utils.filePath);
+    private void initDate() {
         fileList = new ArrayList<>();
-        fileList.add("/sdcard/mediaResource/01.jpg");
-        fileList.add("/sdcard/mediaResource/02.jpg");
-        fileList.add("/sdcard/mediaResource/VID_20190314_103836.mp4");
-        fileList.add("/sdcard/mediaResource/03.jpg");
-        fileList.add("/sdcard/mediaResource/04.jpg");
-        fileList.add("/sdcard/mediaResource/05.jpg");
-        fileList.add("/sdcard/mediaResource/VID_20190314_095407.mp4");
-        fileList.add("/sdcard/mediaResource/06.jpg");
+        File file = new File(Utils.filePath);
+        File[] files = file.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            Log.d(TAG, "data: " + files[i].getAbsolutePath());
+            fileList.add(files[i].getAbsolutePath());
+        }
     }
 
     private void initFile() {
         Utils.isExist(Utils.filePath);
     }
 
-    private void initPermissions(){
+    private void initPermissions() {
         int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
             ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         }
     }
@@ -98,13 +98,13 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(mSdcardReceiver, filter, "android.permission.READ_EXTERNAL_STORAGE", null);
     }
 
-    private void updateFileData(){
+    private void updateFileData() {
         File file = new File(Utils.filePath);
         File[] files = file.listFiles();
 //        List<SimpleBannerInfo> simpleBannerInfo = new ArrayList<>();
-        for(int i =0; i < files.length; i++){
+        for (int i = 0; i < files.length; i++) {
             String filePath = files[i].getAbsolutePath();
-            if(filePath.endsWith("jpg") || filePath.endsWith("png") || filePath.endsWith("gif")){
+            if (filePath.endsWith("jpg") || filePath.endsWith("png") || filePath.endsWith("gif")) {
 //                simpleBannerInfo.add(new MyImageInfo(filePath));
             }
         }
@@ -118,8 +118,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             for (int i = 0; i < files.length; i++) {
                 String filePath = files[i].getAbsolutePath();
-                if(filePath.endsWith("jpg") || filePath.endsWith("png") || filePath.endsWith("gif")
-                        || filePath.endsWith("mp4") || filePath.endsWith("mkv") || filePath.endsWith("avi")){
+                if (filePath.endsWith("jpg") || filePath.endsWith("png") || filePath.endsWith("gif")
+                        || filePath.endsWith("mp4") || filePath.endsWith("mkv") || filePath.endsWith("avi")) {
                     return false;
                 }
             }
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
                     if (f[j].getAbsolutePath().contains(FILE_NAME)) {
                         mediaPath = f[j].getAbsolutePath();
                         Log.d(TAG, "mediaPath: " + mediaPath);
-                        if(!isEmptyFolder(mediaPath)){
+                        if (!isEmptyFolder(mediaPath)) {
                             return true;
                         }
                     }

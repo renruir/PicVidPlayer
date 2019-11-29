@@ -22,16 +22,24 @@ import androidx.viewpager.widget.ViewPager;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.ctftek.player.MVideoView;
+import com.ctftek.player.Utils;
+import com.ctftek.player.video.EmptyControlVideo;
+import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
+import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.shuyu.gsyvideoplayer.GSYVideoADManager.TAG;
 
 /**
  * Created by steven on 2018/5/14.
  */
 
 public class Banner extends RelativeLayout {
+
+    private static final String TAG = Banner.class.getName();
     private ViewPager viewPager;
     private final int UPTATE_VIEWPAGER = 100;
     //图片默认时间间隔
@@ -77,7 +85,6 @@ public class Banner extends RelativeLayout {
         this.addView(viewPager);
     }
 
-
     public void setDataList(List<String> dataList) {
         if (dataList == null) {
             dataList = new ArrayList<>();
@@ -106,50 +113,265 @@ public class Banner extends RelativeLayout {
                     url = dataList.get(i - 1);
                 }
 
-                if (MimeTypeMap.getFileExtensionFromUrl(url).equals("mp4")) {
-                    MVideoView videoView = new MVideoView(getContext());
-                    videoView.setLayoutParams(lp);
-                    videoView.setVideoURI(Uri.parse(url));
-                    videoView.start();
-                    views.add(videoView);
+                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
+                    EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                    videoPlayer.setLayoutParams(lp);
+                    videoPlayer.setUp(url, true, "");
+                    videoPlayer.startPlayLogic();
+                    videoPlayer.setVideoAllCallBack(new VideoAllCallBack() {
+                        @Override
+                        public void onStartPrepared(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onPrepared(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStartIcon(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStartError(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStop(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStopFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickResume(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickResumeFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickSeekbar(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickSeekbarFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onAutoComplete(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onEnterFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onQuitFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onQuitSmallWidget(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onEnterSmallWidget(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onTouchScreenSeekVolume(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onTouchScreenSeekPosition(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onTouchScreenSeekLight(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onPlayError(String url, Object... objects) {
+                            Log.e(TAG, "onPlayError:"+url);
+                            mHandler.removeCallbacks(runnable);
+                            mHandler.postDelayed(runnable, 100);
+                        }
+
+                        @Override
+                        public void onClickStartThumb(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickBlank(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickBlankFullscreen(String url, Object... objects) {
+
+                        }
+                    });
+                    views.add(videoPlayer);
                 } else {
                     ImageView imageView = new ImageView(getContext());
                     imageView.setLayoutParams(lp);
                     imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                     Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
-//                    imageView.setImageURI(Uri.fromFile(new File(url)));
                     views.add(imageView);
                 }
             }
         } else if (dataList.size() == 1) {
             autoCurrIndex = 0;
             String url = dataList.get(0);
-            if (MimeTypeMap.getFileExtensionFromUrl(url).equals("mp4")) {
-                MVideoView videoView = new MVideoView(getContext());
-                videoView.setLayoutParams(lp);
-                videoView.setVideoURI(Uri.parse(url));
-                videoView.start();
-                //监听视频播放完的代码
-                videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
+                final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                videoPlayer.setLayoutParams(lp);
+                videoPlayer.setUp(url, true, "测试视频");
+                videoPlayer.startPlayLogic();
+                videoPlayer.setVideoAllCallBack(new VideoAllCallBack() {
+                    @Override
+                    public void onStartPrepared(String url, Object... objects) {
+
+                    }
 
                     @Override
-                    public void onCompletion(MediaPlayer mPlayer) {
-                        mPlayer.start();
-                        mPlayer.setLooping(true);
+                    public void onPrepared(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickStartIcon(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickStartError(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickStop(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickStopFullscreen(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickResume(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickResumeFullscreen(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickSeekbar(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickSeekbarFullscreen(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onAutoComplete(String url, Object... objects) {
+                        videoPlayer.startPlayLogic();
+                        views.add(videoPlayer);
+                    }
+
+                    @Override
+                    public void onEnterFullscreen(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onQuitFullscreen(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onQuitSmallWidget(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onEnterSmallWidget(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onTouchScreenSeekVolume(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onTouchScreenSeekPosition(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onTouchScreenSeekLight(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onPlayError(String url, Object... objects) {
+                        Log.e(TAG, "onPlayError:"+url);
+                        mHandler.removeCallbacks(runnable);
+                        mHandler.postDelayed(runnable, 100);
+                    }
+
+                    @Override
+                    public void onClickStartThumb(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickBlank(String url, Object... objects) {
+
+                    }
+
+                    @Override
+                    public void onClickBlankFullscreen(String url, Object... objects) {
+
                     }
                 });
-                views.add(videoView);
+
             } else {
                 ImageView imageView = new ImageView(getContext());
                 imageView.setLayoutParams(lp);
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-//                Glide.with(getContext()).load(url).apply(options).into(imageView);
-                imageView.setImageURI(Uri.fromFile(new File(url)));
+                Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
                 views.add(imageView);
             }
         }
     }
-
 
     public void setImgDelyed(int imgDelyed) {
         this.imgDelyed = imgDelyed;
@@ -176,7 +398,7 @@ public class Banner extends RelativeLayout {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                Log.d("TAG", "" + state);
+                Log.d("TAG", "1111:" + state);
 
                 //移除自动计时
                 mHandler.removeCallbacks(runnable);
@@ -196,18 +418,134 @@ public class Banner extends RelativeLayout {
                 //停止滑动时，重新自动倒计时
                 if (state == 0 && isAutoPlay && views.size() > 1) {
                     View view1 = views.get(pageIndex);
-                    if (view1 instanceof VideoView) {
-                        final VideoView videoView = (VideoView) view1;
-                        int current = videoView.getCurrentPosition();
-                        int duration = videoView.getDuration();
-                        delyedTime = duration - current;
-                        //某些时候，某些视频，获取的时间无效，就延时10秒，重新获取
-                        if (delyedTime <= 0) {
-                            time.getDelyedTime(videoView, runnable);
-                            mHandler.postDelayed(time, imgDelyed);
-                        } else {
-                            mHandler.postDelayed(runnable, delyedTime);
-                        }
+                    if (view1 instanceof StandardGSYVideoPlayer) {
+                        final EmptyControlVideo videoView = (EmptyControlVideo) view1;
+//                        int current = videoView.getPlayPosition();
+                        videoView.setVideoAllCallBack(new VideoAllCallBack() {
+                            @Override
+                            public void onStartPrepared(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onPrepared(String url, Object... objects) {
+                                int current = videoView.getPlayPosition();
+                                int duration = videoView.getDuration();
+                                delyedTime = duration - current;
+                                Log.d(TAG, "duration: " + duration);
+                                Log.d(TAG, "current: " + current);
+                                //某些时候，某些视频，获取的时间无效，就延时10秒，重新获取
+                                if (delyedTime <= 0) {
+                                    time.getDelyedTime(videoView, runnable);
+                                    mHandler.postDelayed(time, imgDelyed);
+                                } else {
+                                    mHandler.postDelayed(runnable, delyedTime);
+                                }
+                            }
+
+                            @Override
+                            public void onClickStartIcon(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickStartError(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickStop(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickStopFullscreen(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickResume(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickResumeFullscreen(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickSeekbar(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickSeekbarFullscreen(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onAutoComplete(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onEnterFullscreen(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onQuitFullscreen(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onQuitSmallWidget(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onEnterSmallWidget(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onTouchScreenSeekVolume(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onTouchScreenSeekPosition(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onTouchScreenSeekLight(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onPlayError(String url, Object... objects) {
+                                Log.e(TAG, "onPlayError:"+url);
+                                mHandler.removeCallbacks(runnable);
+                                mHandler.postDelayed(runnable, 100);
+                            }
+
+                            @Override
+                            public void onClickStartThumb(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickBlank(String url, Object... objects) {
+
+                            }
+
+                            @Override
+                            public void onClickBlankFullscreen(String url, Object... objects) {
+
+                            }
+                        });
+
                     } else {
                         delyedTime = imgDelyed;
                         mHandler.postDelayed(runnable, delyedTime);
@@ -242,21 +580,21 @@ public class Banner extends RelativeLayout {
     };
 
     /**
-     * 这个类，恩，获取视频长度，以及已经播放的时间
+     * 这个类获取视频长度，以及已经播放的时间
      */
     private class Time implements Runnable {
 
-        private VideoView videoView;
+        private StandardGSYVideoPlayer videoView;
         private Runnable runnable;
 
-        public void getDelyedTime(VideoView videoView, Runnable runnable) {
+        public void getDelyedTime(StandardGSYVideoPlayer videoView, Runnable runnable) {
             this.videoView = videoView;
             this.runnable = runnable;
         }
 
         @Override
         public void run() {
-            int current = videoView.getCurrentPosition();
+            int current = videoView.getPlayPosition();
             int duration = videoView.getDuration();
             int delyedTime = duration - current;
             mHandler.postDelayed(runnable, delyedTime);
@@ -287,11 +625,12 @@ public class Banner extends RelativeLayout {
      */
     private void getDelayedTime(int position) {
         View view1 = views.get(position);
-        if (view1 instanceof VideoView) {
-            VideoView videoView = (VideoView) view1;
-            videoView.start();
+        if (view1 instanceof StandardGSYVideoPlayer) {
+            StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
+//            videoView.
             videoView.seekTo(0);
             delyedTime = videoView.getDuration();
+            videoView.startPlayLogic();
             time.getDelyedTime(videoView, runnable);
         } else {
             delyedTime = imgDelyed;

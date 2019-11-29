@@ -146,4 +146,13 @@ public class Utils {
             return false;
         }
     }
+
+    public static String getFileExtend(String filePath){
+        String exten ="";
+        int i = filePath.lastIndexOf('.');
+        if (i > 0) {
+            exten = filePath.substring(i+1);
+        }
+        return exten;
+    }
 }
