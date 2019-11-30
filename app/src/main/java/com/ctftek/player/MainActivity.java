@@ -32,8 +32,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
-    private static final String FILE_NAME = "mediaResource";
-    private String mediaPath = "";
+
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -53,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         TraceServiceImpl.sShouldStopService = false;
         DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
         initFile();
-        initReceiver();
         initDate();
         initView();
 //        isContainResource("/mnt/usb_storage/USB_DISK2");//for test
@@ -90,14 +88,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_MEDIA_MOUNTED);  //接受外媒挂载过滤器
-        filter.addAction(Intent.ACTION_MEDIA_REMOVED);  //接受外媒挂载过滤器    
-        filter.addDataScheme("file");
-        registerReceiver(mSdcardReceiver, filter, "android.permission.READ_EXTERNAL_STORAGE", null);
-    }
-
     private void updateFileData() {
         File file = new File(Utils.filePath);
         File[] files = file.listFiles();
@@ -109,65 +99,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-    private boolean isEmptyFolder(String path) {
-        File file = new File(path);
-        File[] files = file.listFiles();
-        if (files == null) {
-            return true;
-        } else {
-            for (int i = 0; i < files.length; i++) {
-                String filePath = files[i].getAbsolutePath();
-                if (filePath.endsWith("jpg") || filePath.endsWith("png") || filePath.endsWith("gif")
-                        || filePath.endsWith("mp4") || filePath.endsWith("mkv") || filePath.endsWith("avi")) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private boolean isContainResource(String path) {
-        File file = new File(path);
-        Log.d(TAG, "isContainResource: " + file.getAbsolutePath());
-        File[] files = file.listFiles();
-        if (files == null) {
-            Log.e(TAG, "空目录");
-            return false;
-        } else {
-            for (int i = 0; i < files.length; i++) {
-                Log.e(TAG, "存储目录有：" + files[i].getAbsolutePath());
-                File[] f = files[i].listFiles();
-                for (int j = 0; j < f.length; j++) {
-                    Log.d(TAG, "son files : " + f[j].getAbsolutePath());
-                    if (f[j].getAbsolutePath().contains(FILE_NAME)) {
-                        mediaPath = f[j].getAbsolutePath();
-                        Log.d(TAG, "mediaPath: " + mediaPath);
-                        if (!isEmptyFolder(mediaPath)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    BroadcastReceiver mSdcardReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Intent.ACTION_MEDIA_MOUNTED)) {
-                String path = intent.getDataString().substring(8);
-                Log.e(TAG, "onReceive: 插入优盘:" + path);
-                if (isContainResource(path)) {
-                    Utils.deleteFiles(Utils.filePath);
-                    Utils.copyFolder(mediaPath, Utils.filePath);
-                    Toast.makeText(MainActivity.this, "文件复制完成！", Toast.LENGTH_SHORT).show();
-                }
-            } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED)) {
-                Log.e(TAG, "onReceive: 移除优盘");
-            }
-        }
-    };
 
 }
