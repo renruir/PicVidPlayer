@@ -2,31 +2,20 @@ package com.ctftek.player;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.Toast;
+import android.view.KeyEvent;
 
 import com.ctftek.player.banner.Banner;
 import com.xdandroid.hellodaemon.DaemonEnv;
 
 import java.io.File;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initPermissions();
+        Intent intent = new Intent(this, StorageService.class);
+        startService(intent);
+
         setContentView(R.layout.activity_main);
         TraceServiceImpl.sShouldStopService = false;
         DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
@@ -100,4 +92,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            final AlertDialog.Builder normalDialog =
+                    new AlertDialog.Builder(MainActivity.this);
+            normalDialog.setTitle("提示");
+            normalDialog.setMessage("确定要退出播放吗？");
+            normalDialog.setPositiveButton("确定",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            banner.stopPlay();
+                            MainActivity.this.finish();
+                        }
+                    });
+            normalDialog.setNegativeButton("关闭",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                           dialog.dismiss();
+                        }
+                    });
+            normalDialog.show();
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }

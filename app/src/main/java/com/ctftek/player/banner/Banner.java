@@ -14,6 +14,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.annotation.RequiresApi;
@@ -55,25 +56,30 @@ public class Banner extends RelativeLayout {
     private List<String> list;
     private List<View> views;
     private BannerViewAdapter mAdapter;
+    private Context mContext;
 
     public Banner(Context context) {
         super(context);
+        mContext = context;
         init();
     }
 
     public Banner(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
         init();
     }
 
     public Banner(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        mContext = context;
         init();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public Banner(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        mContext = context;
         init();
     }
 
@@ -114,10 +120,125 @@ public class Banner extends RelativeLayout {
                 }
 
                 if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
-                    EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                    final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
                     videoPlayer.setLayoutParams(lp);
                     videoPlayer.setUp(url, true, "");
 //                    videoPlayer.startPlayLogic();
+                    videoPlayer.setVideoAllCallBack(new VideoAllCallBack() {
+                        @Override
+                        public void onStartPrepared(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onPrepared(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStartIcon(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStartError(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStop(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickStopFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickResume(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickResumeFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickSeekbar(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickSeekbarFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onAutoComplete(String url, Object... objects) {
+                            videoPlayer.startPlayLogic();
+                            views.add(videoPlayer);
+                        }
+
+                        @Override
+                        public void onEnterFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onQuitFullscreen(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onQuitSmallWidget(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onEnterSmallWidget(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onTouchScreenSeekVolume(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onTouchScreenSeekPosition(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onTouchScreenSeekLight(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onPlayError(String url, Object... objects) {
+                            Log.e(TAG, "onPlayError 22:" + url);
+                            mHandler.removeCallbacks(runnable);
+                            mHandler.postDelayed(runnable, 100);
+                            Toast.makeText(mContext, "文件格式错误:" + url+", 跳过，播放下一个", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onClickStartThumb(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickBlank(String url, Object... objects) {
+
+                        }
+
+                        @Override
+                        public void onClickBlankFullscreen(String url, Object... objects) {
+
+                        }
+                    });
                     views.add(videoPlayer);
                 } else {
                     ImageView imageView = new ImageView(getContext());
@@ -229,7 +350,7 @@ public class Banner extends RelativeLayout {
 
                     @Override
                     public void onPlayError(String url, Object... objects) {
-                        Log.e(TAG, "onPlayError:"+url);
+                        Log.e(TAG, "onPlayError:" + url);
                         mHandler.removeCallbacks(runnable);
                         mHandler.postDelayed(runnable, 100);
                     }
@@ -412,7 +533,7 @@ public class Banner extends RelativeLayout {
 
                             @Override
                             public void onPlayError(String url, Object... objects) {
-                                Log.e(TAG, "onPlayError:"+url);
+                                Log.e(TAG, "onPlayError:" + url);
                                 mHandler.removeCallbacks(runnable);
                                 mHandler.postDelayed(runnable, 100);
                             }
@@ -542,6 +663,19 @@ public class Banner extends RelativeLayout {
                     mHandler.postDelayed(runnable, delyedTime);
                 }
             }
+        }
+    }
+
+    public void stopPlay(){
+        View view1 = views.get(autoCurrIndex);
+        Log.d(TAG, "stopPlay: " + autoCurrIndex);
+        mHandler.removeCallbacks(runnable);
+        if (view1 instanceof StandardGSYVideoPlayer) {
+            StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
+//            videoView.
+            videoView.release();
+        } else {
+            views.clear();
         }
     }
 
