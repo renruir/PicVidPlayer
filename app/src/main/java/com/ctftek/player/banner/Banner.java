@@ -667,15 +667,17 @@ public class Banner extends RelativeLayout {
     }
 
     public void stopPlay(){
-        View view1 = views.get(autoCurrIndex);
-        Log.d(TAG, "stopPlay: " + autoCurrIndex);
-        mHandler.removeCallbacks(runnable);
-        if (view1 instanceof StandardGSYVideoPlayer) {
-            StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
+        if(views.size() != 0){
+            View view1 = views.get(autoCurrIndex);
+            Log.d(TAG, "stopPlay: " + autoCurrIndex);
+            mHandler.removeCallbacks(runnable);
+            if (view1 instanceof StandardGSYVideoPlayer) {
+                StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
 //            videoView.
-            videoView.release();
-        } else {
-            views.clear();
+                videoView.release();
+            } else {
+                views.clear();
+            }
         }
     }
 

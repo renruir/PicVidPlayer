@@ -12,8 +12,8 @@ import java.util.List;
 public class Utils {
 
     private static final String TAG = Utils.class.getName();
-//    public static final String filePath = "/mnt/sdcard/mediaResource";
-    public static final String filePath = "/sdcard/mediaResource";//for 小米8
+    public static final String filePath = "/mnt/sdcard/mediaResource";
+//    public static final String filePath = "/sdcard/mediaResource";//for 小米8
 
     public static List<String> getFilesAllName(String path) {
         File file=new File(path);
