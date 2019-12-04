@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,6 +9,17 @@
     <com.ctftek.player.banner.Banner
         android:id="@+id/banner"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" >
 
-</FrameLayout>
+        <TextView
+            android:id="@+id/msg_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="文件夹为空，请把播放文件放入U盘或者TF中中mediaResource文件夹（如没有，请自行创建）中，再插入设备！"
+            android:textColor="#E91E63"
+            android:visibility="visible" />
+    </com.ctftek.player.banner.Banner>
+
+</LinearLayout>

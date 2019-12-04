@@ -36,6 +36,6 @@ dependencies {
     implementation 'com.xdandroid:hellodaemon:+'
     implementation 'com.youth.banner:banner:1.4.10'
     implementation 'com.github.bumptech.glide:glide:4.0.0'
-    implementation 'com.shuyu:gsyVideoPlayer-java:7.1.1'
+    implementation 'com.shuyu:gsyVideoPlayer-java:7.1.2'
 
 }

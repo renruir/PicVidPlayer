@@ -1,30 +1,24 @@
 package com.ctftek.player;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.UserHandle;
 import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.TextView;
 
 import com.ctftek.player.banner.Banner;
 import com.xdandroid.hellodaemon.DaemonEnv;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
 
     //view
     private Banner banner;
+//    private NewBanner banner;
+    private TextView mText;
 
     //data
     private List<String> fileList;
@@ -53,55 +49,61 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         TraceServiceImpl.sShouldStopService = false;
         DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
+        initView();
         initFile();
         initDate();
-        initView();
-        File[] files = getExternalFilesDirs(null);
-        for (File file : files) {
-            Log.e(TAG, "file: " + file.getAbsolutePath());
-        }
 
 //        getPhysicalExternalFilePathAboveM();
 //        isContainResource("/mnt/usb_storage/USB_DISK2");//for test
 //        updateFileData();
+        getSecondaryStoragePath();
     }
 
-    // 获取次存储卡路径,一般就是外置 TF 卡了. 不过也有可能是 USB OTG 设备...
-    // 其实只要判断第二章卡在挂载状态,就可以用了.
     public String getSecondaryStoragePath() {
         try {
             StorageManager sm = (StorageManager) getSystemService(STORAGE_SERVICE);
             Method getVolumePathsMethod = StorageManager.class.getMethod("getVolumePaths", null);
             String[] paths = (String[]) getVolumePathsMethod.invoke(sm, null);
-            Log.d(TAG, "getSecondaryStoragePath: " + paths.length);
-            for (int i = 0; i < paths.length; i++) {
-                Log.d(TAG, "getSecondaryStoragePath: " + paths[i]);
+            Log.d(TAG, "SecondaryStoragePathSize: " + paths.length);
+            if(paths.length == 2){
+                return paths[1];
+            } else if(paths.length == 3){
+                return paths[2];
+            } else {
+                return paths.length <= 1 ? null : paths[1];
             }
-            // second element in paths[] is secondary storage path
-            return paths.length <= 1 ? null : paths[1];
+
         } catch (Exception e) {
             Log.e(TAG, "getSecondaryStoragePath() failed", e);
+            return null;
         }
-        return null;
     }
 
     private void initView() {
+        mText = (TextView)findViewById(R.id.msg_text);
         banner = (Banner) findViewById(R.id.banner);
-        banner.setDataList(fileList);
-        banner.setImgDelyed(2000);
-        banner.startBanner();
-        banner.startAutoPlay();
     }
 
     private void initDate() {
         fileList = new ArrayList<>();
         File file = new File(Utils.filePath);
         File[] files = file.listFiles();
-        if (files != null) {
+        Log.d(TAG, "initDate: " + files.length);
+        if (files.length != 0) {
+            banner.setVisibility(View.VISIBLE);
+            mText.setVisibility(View.GONE);
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
                 fileList.add(files[i].getAbsolutePath());
             }
+            banner.setDataList(fileList);
+            banner.setImgDelyed(2000);
+            banner.startBanner();
+            banner.update();
+            banner.startAutoPlay();
+        } else {
+            banner.setVisibility(View.GONE);
+            mText.setVisibility(View.VISIBLE);
         }
     }
 
@@ -121,19 +123,6 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent: " + intent.getData());
         initDate();
-        initView();
-    }
-
-    private void updateFileData() {
-        File file = new File(Utils.filePath);
-        File[] files = file.listFiles();
-//        List<SimpleBannerInfo> simpleBannerInfo = new ArrayList<>();
-        for (int i = 0; i < files.length; i++) {
-            String filePath = files[i].getAbsolutePath();
-            if (filePath.endsWith("jpg") || filePath.endsWith("png") || filePath.endsWith("gif")) {
-//                simpleBannerInfo.add(new MyImageInfo(filePath));
-            }
-        }
     }
 
     @Override
@@ -162,35 +151,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
-
-
-    //    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private String getPhysicalExternalFilePathAboveM() {
-        try {
-            //===========================获取UserEnvironment================
-            Class<?> userEnvironment = Class.forName("android.os.Environment$UserEnvironment");
-            Method getExternalDirs = userEnvironment.getDeclaredMethod("getExternalDirs");
-            getExternalDirs.setAccessible(true);
-            //========获取构造UserEnvironment的必要参数UserId================
-            Class<?> userHandle = Class.forName("android.os.UserHandle");
-            Method myUserId = userHandle.getDeclaredMethod("myUserId");
-            myUserId.setAccessible(true);
-            int mUserId = (int) myUserId.invoke(UserHandle.class);
-            Constructor<?> declaredConstructor = userEnvironment.getDeclaredConstructor(Integer.TYPE);
-            // 得到UserEnvironment instance
-            Object instance = declaredConstructor.newInstance(mUserId);
-            File[] files = (File[]) getExternalDirs.invoke(instance);
-            for (int i = 0; i < files.length; i++) {
-                if (Environment.isExternalStorageRemovable(files[i])) {
-                    Log.d(TAG, "getPhysicalExternalFilePathAboveM: " + files[i].getPath());
-                    return files[i].getPath();
-                }
-            }
-        } catch (Exception e) {
-//            CrashHandler.getInstance().saveExceptionAsCrash(e);
-        }
-        return "";
-    }
-
-
 }

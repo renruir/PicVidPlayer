@@ -26,6 +26,7 @@ public class BannerViewAdapter extends PagerAdapter {
         if (list != null && list.size() > 0) {
             this.listBean = list;
         }
+        notifyDataSetChanged();
     }
 
     @Override

@@ -25,7 +25,11 @@ import com.bumptech.glide.request.RequestOptions;
 import com.ctftek.player.MVideoView;
 import com.ctftek.player.Utils;
 import com.ctftek.player.video.EmptyControlVideo;
+import com.shuyu.gsyvideoplayer.builder.GSYVideoOptionBuilder;
+import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
 import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
+import com.shuyu.gsyvideoplayer.player.SystemPlayerManager;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 import java.io.File;
@@ -121,99 +125,18 @@ public class Banner extends RelativeLayout {
 
                 if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
                     final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+
                     videoPlayer.setLayoutParams(lp);
                     videoPlayer.setUp(url, true, "");
+                    PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
 //                    videoPlayer.startPlayLogic();
-                    videoPlayer.setVideoAllCallBack(new VideoAllCallBack() {
-                        @Override
-                        public void onStartPrepared(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onPrepared(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickStartIcon(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickStartError(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickStop(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickStopFullscreen(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickResume(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickResumeFullscreen(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickSeekbar(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickSeekbarFullscreen(String url, Object... objects) {
-
-                        }
+                    videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
 
                         @Override
                         public void onAutoComplete(String url, Object... objects) {
+                            Log.d(TAG, "onAutoComplete: " + url);
                             videoPlayer.startPlayLogic();
                             views.add(videoPlayer);
-                        }
-
-                        @Override
-                        public void onEnterFullscreen(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onQuitFullscreen(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onQuitSmallWidget(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onEnterSmallWidget(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onTouchScreenSeekVolume(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onTouchScreenSeekPosition(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onTouchScreenSeekLight(String url, Object... objects) {
-
                         }
 
                         @Override
@@ -222,21 +145,6 @@ public class Banner extends RelativeLayout {
                             mHandler.removeCallbacks(runnable);
                             mHandler.postDelayed(runnable, 100);
                             Toast.makeText(mContext, "文件格式错误:" + url+", 跳过，播放下一个", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onClickStartThumb(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickBlank(String url, Object... objects) {
-
-                        }
-
-                        @Override
-                        public void onClickBlankFullscreen(String url, Object... objects) {
-
                         }
                     });
                     views.add(videoPlayer);
@@ -254,99 +162,10 @@ public class Banner extends RelativeLayout {
             if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
                 final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
                 videoPlayer.setLayoutParams(lp);
-                videoPlayer.setUp(url, true, "测试视频");
+                PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
+                videoPlayer.setUp(url, true, "");
                 videoPlayer.startPlayLogic();
-                videoPlayer.setVideoAllCallBack(new VideoAllCallBack() {
-                    @Override
-                    public void onStartPrepared(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onPrepared(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickStartIcon(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickStartError(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickStop(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickStopFullscreen(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickResume(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickResumeFullscreen(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickSeekbar(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickSeekbarFullscreen(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onAutoComplete(String url, Object... objects) {
-                        videoPlayer.startPlayLogic();
-                        views.add(videoPlayer);
-                    }
-
-                    @Override
-                    public void onEnterFullscreen(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onQuitFullscreen(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onQuitSmallWidget(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onEnterSmallWidget(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onTouchScreenSeekVolume(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onTouchScreenSeekPosition(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onTouchScreenSeekLight(String url, Object... objects) {
-
-                    }
+                videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
 
                     @Override
                     public void onPlayError(String url, Object... objects) {
@@ -355,20 +174,7 @@ public class Banner extends RelativeLayout {
                         mHandler.postDelayed(runnable, 100);
                     }
 
-                    @Override
-                    public void onClickStartThumb(String url, Object... objects) {
 
-                    }
-
-                    @Override
-                    public void onClickBlank(String url, Object... objects) {
-
-                    }
-
-                    @Override
-                    public void onClickBlankFullscreen(String url, Object... objects) {
-
-                    }
                 });
 
             } else {
@@ -429,11 +235,8 @@ public class Banner extends RelativeLayout {
                     if (view1 instanceof StandardGSYVideoPlayer) {
                         final EmptyControlVideo videoView = (EmptyControlVideo) view1;
 //                        int current = videoView.getPlayPosition();
-                        videoView.setVideoAllCallBack(new VideoAllCallBack() {
-                            @Override
-                            public void onStartPrepared(String url, Object... objects) {
-
-                            }
+                        PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
+                        videoView.setVideoAllCallBack(new GSYSampleCallBack() {
 
                             @Override
                             public void onPrepared(String url, Object... objects) {
@@ -452,83 +255,9 @@ public class Banner extends RelativeLayout {
                             }
 
                             @Override
-                            public void onClickStartIcon(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickStartError(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickStop(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickStopFullscreen(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickResume(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickResumeFullscreen(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickSeekbar(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickSeekbarFullscreen(String url, Object... objects) {
-
-                            }
-
-                            @Override
                             public void onAutoComplete(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onEnterFullscreen(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onQuitFullscreen(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onQuitSmallWidget(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onEnterSmallWidget(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onTouchScreenSeekVolume(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onTouchScreenSeekPosition(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onTouchScreenSeekLight(String url, Object... objects) {
-
+                                Log.d(TAG, "AutoComplete: " + url);
+                                viewPager.setCurrentItem(autoCurrIndex + 1);
                             }
 
                             @Override
@@ -538,20 +267,6 @@ public class Banner extends RelativeLayout {
                                 mHandler.postDelayed(runnable, 100);
                             }
 
-                            @Override
-                            public void onClickStartThumb(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickBlank(String url, Object... objects) {
-
-                            }
-
-                            @Override
-                            public void onClickBlankFullscreen(String url, Object... objects) {
-
-                            }
                         });
 
                     } else {
@@ -643,6 +358,11 @@ public class Banner extends RelativeLayout {
         } else {
             delyedTime = imgDelyed;
         }
+    }
+
+    public void update(){
+//        mHandler.removeCallbacks(runnable);
+        mAdapter.notifyDataSetChanged();
     }
 
     public void dataChange(List<String> list) {
