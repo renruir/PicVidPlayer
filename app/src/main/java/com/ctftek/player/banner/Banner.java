@@ -25,7 +25,9 @@ import com.bumptech.glide.request.RequestOptions;
 import com.ctftek.player.MVideoView;
 import com.ctftek.player.Utils;
 import com.ctftek.player.video.EmptyControlVideo;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.builder.GSYVideoOptionBuilder;
+import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
 import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
@@ -35,6 +37,10 @@ import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
+import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 import static com.shuyu.gsyvideoplayer.GSYVideoADManager.TAG;
 
@@ -106,9 +112,9 @@ public class Banner extends RelativeLayout {
             views.clear();
         }
 
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         RequestOptions options = new RequestOptions();
-        options.centerCrop();
+        options.fitCenter();
         //数据大于一条，才可以循环
         if (dataList.size() > 1) {
             autoCurrIndex = 1;
@@ -123,21 +129,23 @@ public class Banner extends RelativeLayout {
                     url = dataList.get(i - 1);
                 }
 
-                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
+                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
+                        Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts")) {
                     final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
 
                     videoPlayer.setLayoutParams(lp);
                     videoPlayer.setUp(url, true, "");
-                    PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
+//                    PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
+//                    videoPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
 //                    videoPlayer.startPlayLogic();
                     videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
 
-                        @Override
-                        public void onAutoComplete(String url, Object... objects) {
-                            Log.d(TAG, "onAutoComplete: " + url);
-                            videoPlayer.startPlayLogic();
-                            views.add(videoPlayer);
-                        }
+//                        @Override
+//                        public void onAutoComplete(String url, Object... objects) {
+//                            Log.d(TAG, "onAutoComplete: " + url);
+//                            videoPlayer.startPlayLogic();
+//                            views.add(videoPlayer);
+//                        }
 
                         @Override
                         public void onPlayError(String url, Object... objects) {
@@ -151,7 +159,7 @@ public class Banner extends RelativeLayout {
                 } else {
                     ImageView imageView = new ImageView(getContext());
                     imageView.setLayoutParams(lp);
-                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
                     views.add(imageView);
                 }
@@ -180,7 +188,7 @@ public class Banner extends RelativeLayout {
             } else {
                 ImageView imageView = new ImageView(getContext());
                 imageView.setLayoutParams(lp);
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
                 views.add(imageView);
             }
@@ -257,6 +265,8 @@ public class Banner extends RelativeLayout {
                             @Override
                             public void onAutoComplete(String url, Object... objects) {
                                 Log.d(TAG, "AutoComplete: " + url);
+//                                String text = null;
+//                                text.substring(1);
                                 viewPager.setCurrentItem(autoCurrIndex + 1);
                             }
 

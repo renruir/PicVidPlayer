@@ -16,12 +16,20 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.ctftek.player.banner.Banner;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
+import com.shuyu.gsyvideoplayer.cache.CacheFactory;
+import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.xdandroid.hellodaemon.DaemonEnv;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
+import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
@@ -33,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     //view
     private Banner banner;
-//    private NewBanner banner;
+    //    private NewBanner banner;
     private TextView mText;
 
     //data
@@ -52,6 +60,33 @@ public class MainActivity extends AppCompatActivity {
         initView();
         initFile();
         initDate();
+        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+        VideoOptionModel videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rtsp_transport", "tcp");
+        List<VideoOptionModel> list = new ArrayList<>();
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rtsp_flags", "prefer_tcp");
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "allowed_media_types", "video"); //根据媒体类型来配置
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "timeout", 20000);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "buffer_size", 1316);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "infbuf", 1);  // 无限读
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzemaxduration", 100);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 10240);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flush_packets", 1);
+        list.add(videoOptionModel);
+        //  关闭播放器缓冲，这个必须关闭，否则会出现播放一段时间后，一直卡主，控制台打印 FFP_MSG_BUFFERING_START
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);
+        list.add(videoOptionModel);
+
+        list.add(videoOptionModel);
+        GSYVideoManager.instance().setOptionModelList(list);
 
 //        getPhysicalExternalFilePathAboveM();
 //        isContainResource("/mnt/usb_storage/USB_DISK2");//for test
@@ -65,9 +100,9 @@ public class MainActivity extends AppCompatActivity {
             Method getVolumePathsMethod = StorageManager.class.getMethod("getVolumePaths", null);
             String[] paths = (String[]) getVolumePathsMethod.invoke(sm, null);
             Log.d(TAG, "SecondaryStoragePathSize: " + paths.length);
-            if(paths.length == 2){
+            if (paths.length == 2) {
                 return paths[1];
-            } else if(paths.length == 3){
+            } else if (paths.length == 3) {
                 return paths[2];
             } else {
                 return paths.length <= 1 ? null : paths[1];
@@ -80,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        mText = (TextView)findViewById(R.id.msg_text);
+        mText = (TextView) findViewById(R.id.msg_text);
         banner = (Banner) findViewById(R.id.banner);
     }
 
@@ -94,7 +129,12 @@ public class MainActivity extends AppCompatActivity {
             mText.setVisibility(View.GONE);
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
-                fileList.add(files[i].getAbsolutePath());
+                String url = files[i].getAbsolutePath();
+                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
+                        Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") ||
+                        Utils.getFileExtend(url).equals("jpg") || Utils.getFileExtend(url).equals("png") || Utils.getFileExtend(url).equals("jpeg")) {
+                    fileList.add(files[i].getAbsolutePath());
+                }
             }
             banner.setDataList(fileList);
             banner.setImgDelyed(2000);
@@ -150,5 +190,11 @@ public class MainActivity extends AppCompatActivity {
             normalDialog.show();
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "Program exception, activity destroy ");
     }
 }

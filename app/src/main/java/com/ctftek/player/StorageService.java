@@ -6,22 +6,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-import android.os.Environment;
+import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.os.storage.StorageManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
 import java.io.File;
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 public class StorageService extends Service {
 
@@ -40,9 +32,17 @@ public class StorageService extends Service {
     @SuppressLint("WrongConstant")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand: ");
+        Log.d(TAG, "ctftek service start: ");
         flags = START_STICKY;
         registerBroadCast();
+        SharedPreferences sp = getSharedPreferences("ACTIVE", MODE_PRIVATE);
+        boolean active = sp.getBoolean("active", true);
+        Log.d(TAG, "onStartCommand: " + active);
+        if(!active){
+            Intent i = new Intent(getApplicationContext(), MainActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
