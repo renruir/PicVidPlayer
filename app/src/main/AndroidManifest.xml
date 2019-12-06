@@ -18,7 +18,7 @@
         <activity android:name=".MainActivity" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="com.ctftek.storagestate.change" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

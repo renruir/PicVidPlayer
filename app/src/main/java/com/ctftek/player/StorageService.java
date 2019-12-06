@@ -3,11 +3,17 @@ package com.ctftek.player;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -21,13 +27,17 @@ public class StorageService extends Service {
 
     private static final String FILE_NAME = "mediaResource";
     private String mediaPath = "";
+    private Messenger mMessenger;
+    private Handler mHandler = new Handler();
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "onBind: ");
+        registerBroadCast();
         return null;
     }
+
 
     @SuppressLint("WrongConstant")
     @Override
@@ -35,10 +45,11 @@ public class StorageService extends Service {
         Log.d(TAG, "ctftek service start: ");
         flags = START_STICKY;
         registerBroadCast();
+//        sendBroadCast2Activity();
         SharedPreferences sp = getSharedPreferences("ACTIVE", MODE_PRIVATE);
         boolean active = sp.getBoolean("active", true);
         Log.d(TAG, "onStartCommand: " + active);
-        if(!active){
+        if (!active) {
             Intent i = new Intent(getApplicationContext(), MainActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
@@ -68,9 +79,10 @@ public class StorageService extends Service {
                 Log.e(TAG, "插入存储设备：:" + intent.getData().getPath());
                 String path = intent.getData().getPath();
                 if (isContainResource(path)) {
+                    sendBroadCast2Activity();
                     Utils.deleteFiles(Utils.filePath);
                     Utils.copyFolder(mediaPath, Utils.filePath);
-                    Toast.makeText(context, "文件复制完成！", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "onReceive: 文件复制完成！" );
                     context.startActivity(new Intent(context, MainActivity.class));
                 }
             } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED) ||
@@ -117,5 +129,13 @@ public class StorageService extends Service {
             }
         }
         return true;
+    }
+
+    private void sendBroadCast2Activity(){
+        Log.d(TAG, "sendBroadCast2Activity: 55555555555555" );
+        Intent intent = new Intent();
+        intent.setAction("com.ctftek.storagestate.change");
+//        intent.setComponent(new ComponentName("com.ctftek.player", "com.ctftek.player.MainActivity.MyBroadcastReceiver"));
+        sendBroadcast(intent);
     }
 }

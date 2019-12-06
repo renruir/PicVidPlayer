@@ -1,7 +1,10 @@
 package com.ctftek.player;
 
-import android.os.Environment;
+import android.app.Activity;
 import android.util.Log;
+import android.widget.Toast;
+
+import androidx.annotation.UiThread;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,7 +17,21 @@ public class Utils {
 
     private static final String TAG = Utils.class.getName();
     public static final String filePath = "/mnt/sdcard/mediaResource";
-//    public static final String filePath = "/sdcard/mediaResource";//for 小米8
+//    public static final String filePath = "/sdcard/mediaResource";//for 小米8\
+    private static Activity mActivity;
+    private static Utils mUtils = null;
+    private Utils () {}
+    public static Utils getInstance(Activity activity) {
+        if (mUtils == null) {
+            synchronized (Utils.class) {
+                if (mUtils == null) {
+                    mActivity = activity;
+                    mUtils = new Utils();
+                }
+            }
+        }
+        return mUtils;
+    }
 
     public static List<String> getFilesAllName(String path) {
         File file=new File(path);
@@ -78,6 +95,66 @@ public class Utils {
         }
         return true;
     }
+
+//    public static boolean copy(String oldPath, String newPath){
+//        CopyPasteUtil.build()
+//                .setIsNeesDefaulProgressDialog(true)
+//                .initValueAndGetDirSize(mActivity, new File(oldPath), new CopyPasteUtil.InitListener() {
+//                    @Override
+//                    public void onNext(long dirFileCount, long dirSize, CopyPasteUtil.CopyPasteImp imp) {
+//                        int fileVolume = (int) (dirSize / (1024 * 1024));
+//                        UiThread.run(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                Toast.makeText(mActivity, "onNext->dirFileCount:" + dirFileCount + "==onNext->dirSize:" + fileVolume + "M", Toast.LENGTH_LONG).show();
+//                            }
+//                        });
+//
+//                        imp.copyDirectiory(mActivity, oldPath, newPath, new CopyPasteUtil.CopyPasteListener() {
+//                            @Override
+//                            public void onSuccess() {
+//                                UiThread.run(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        Toast.makeText(mActivity, "onSuccess:" + i++, Toast.LENGTH_LONG).show();
+//                                    }
+//                                });
+//                            }
+//
+//                            @Override
+//                            public void onProgress(long dirFileCount, long hasReadCount, long dirSize, long hasReadSize) {
+//                                UiThread.run(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        mVersion.setText(dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
+//                                    }
+//                                });
+//                            }
+//
+//                            @Override
+//                            public void onFail(String errorMsg) {
+//                                UiThread.run(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        Toast.makeText(mActivity, "onFail", Toast.LENGTH_LONG).show();
+//                                    }
+//                                });
+//                            }
+//
+//                            @Override
+//                            public void onCancle() {
+//                                UiThread.run(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        Toast.makeText(mActivity, "onCancle", Toast.LENGTH_LONG).show();
+//                                    }
+//                                });
+//                            }
+//                        });
+//                    }
+//                });
+//        return true;
+//    }
 
     public static boolean copyFolder(String oldPath, String newPath) {
         try {

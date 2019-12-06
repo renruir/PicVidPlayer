@@ -149,10 +149,10 @@ public class Banner extends RelativeLayout {
 
                         @Override
                         public void onPlayError(String url, Object... objects) {
-                            Log.e(TAG, "onPlayError 22:" + url);
+                            Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
+                            videoPlayer.release();
                             mHandler.removeCallbacks(runnable);
                             mHandler.postDelayed(runnable, 100);
-                            Toast.makeText(mContext, "文件格式错误:" + url+", 跳过，播放下一个", Toast.LENGTH_SHORT).show();
                         }
                     });
                     views.add(videoPlayer);
@@ -170,7 +170,7 @@ public class Banner extends RelativeLayout {
             if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
                 final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
                 videoPlayer.setLayoutParams(lp);
-                PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
+//                PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
                 videoPlayer.setUp(url, true, "");
                 videoPlayer.startPlayLogic();
                 videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
@@ -220,7 +220,7 @@ public class Banner extends RelativeLayout {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                Log.d("TAG", "1111:" + state);
+                Log.d(TAG, "1111:" + state);
 
                 //移除自动计时
                 mHandler.removeCallbacks(runnable);
@@ -243,7 +243,7 @@ public class Banner extends RelativeLayout {
                     if (view1 instanceof StandardGSYVideoPlayer) {
                         final EmptyControlVideo videoView = (EmptyControlVideo) view1;
 //                        int current = videoView.getPlayPosition();
-                        PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
+//                        PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
                         videoView.setVideoAllCallBack(new GSYSampleCallBack() {
 
                             @Override
@@ -267,12 +267,14 @@ public class Banner extends RelativeLayout {
                                 Log.d(TAG, "AutoComplete: " + url);
 //                                String text = null;
 //                                text.substring(1);
+                                videoView.release();
                                 viewPager.setCurrentItem(autoCurrIndex + 1);
                             }
 
                             @Override
                             public void onPlayError(String url, Object... objects) {
                                 Log.e(TAG, "onPlayError:" + url);
+                                videoView.release();
                                 mHandler.removeCallbacks(runnable);
                                 mHandler.postDelayed(runnable, 100);
                             }
@@ -283,7 +285,7 @@ public class Banner extends RelativeLayout {
                         delyedTime = imgDelyed;
                         mHandler.postDelayed(runnable, delyedTime);
                     }
-                    Log.d("TAG", "" + pageIndex + "--" + autoCurrIndex);
+                    Log.d(TAG, "" + pageIndex + "--" + autoCurrIndex);
                 }
             }
         });
