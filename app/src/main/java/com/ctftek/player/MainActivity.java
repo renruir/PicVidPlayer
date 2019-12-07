@@ -1,11 +1,13 @@
 package com.ctftek.player;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,6 +26,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ctftek.player.banner.Banner;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
@@ -42,7 +45,7 @@ import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private static final String TAG = MainActivity.class.getName();
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -54,18 +57,16 @@ public class MainActivity extends AppCompatActivity {
     private Banner banner;
     //    private NewBanner banner;
     private TextView mText;
-    private MyBroadcastReceiver myBroadcastReceiver;
+    private StorageService.StorageServiceBinder serviceBinder;
 
     //data
     private List<String> fileList;
-    private Handler mHandler = new Handler() {
+    private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
-            Log.d(TAG, "handleMessage: 停止播放吧");
-            if (banner != null) {
-                banner.stopPlay();
-            }
+            Log.d(TAG, "handleMessage: from dialog" );
+            initDate();
         }
     };
 
@@ -74,88 +75,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
-        intent.putExtra("messenger", new Messenger(mHandler));
-        startService(intent);
+        bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
 
         setContentView(R.layout.activity_main);
         TraceServiceImpl.sShouldStopService = false;
         DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("com.ctftek.storagestate.change");
-        myBroadcastReceiver = new MyBroadcastReceiver();
-        registerReceiver(myBroadcastReceiver, filter);
-
         initView();
         initFile();
         initDate();
-        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
-        List<VideoOptionModel> list = new ArrayList<>();
-
-//        VideoOptionModel videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rtsp_transport", "tcp");
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rtsp_flags", "prefer_tcp");
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "allowed_media_types", "video"); //根据媒体类型来配置
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "timeout", 20000);
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "buffer_size", 1316);
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "infbuf", 1);  // 无限读
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzemaxduration", 100);
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 10240);
-//        list.add(videoOptionModel);
-//        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flush_packets", 1);
-//        list.add(videoOptionModel);
-        VideoOptionModel videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
-        list.add(videoOptionModel);
-        //  关闭播放器缓冲，这个必须关闭，否则会出现播放一段时间后，一直卡主，控制台打印 FFP_MSG_BUFFERING_START
-        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);
-        list.add(videoOptionModel);
-        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-all-videos", 1);
-        list.add(videoOptionModel);
-        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 1);
-        list.add(videoOptionModel);
-        GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
-        GSYVideoType.enableMediaCodecTexture();
-        list.add(videoOptionModel);
-
-        GSYVideoManager.instance().setOptionModelList(list);
-
-//        getPhysicalExternalFilePathAboveM();
-//        isContainResource("/mnt/usb_storage/USB_DISK2");//for test
-//        updateFileData();
+        initPlayer();
         getSecondaryStoragePath();
-
-    }
-
-    public String getSecondaryStoragePath() {
-        try {
-            StorageManager sm = (StorageManager) getSystemService(STORAGE_SERVICE);
-            Method getVolumePathsMethod = StorageManager.class.getMethod("getVolumePaths", null);
-            String[] paths = (String[]) getVolumePathsMethod.invoke(sm, null);
-            Log.d(TAG, "SecondaryStoragePathSize: " + paths.length);
-            if (paths.length == 2) {
-                return paths[1];
-            } else if (paths.length == 3) {
-                return paths[2];
-            } else {
-                return paths.length <= 1 ? null : paths[1];
-            }
-
-        } catch (Exception e) {
-            Log.e(TAG, "getSecondaryStoragePath() failed", e);
-            return null;
-        }
     }
 
     private void initView() {
         mText = (TextView) findViewById(R.id.msg_text);
         banner = (Banner) findViewById(R.id.banner);
+    }
+
+    private void initFile() {
+        Utils.isExist(Utils.filePath);
     }
 
     private void initDate() {
@@ -186,8 +125,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initFile() {
-        Utils.isExist(Utils.filePath);
+    private void initPlayer() {
+        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+        List<VideoOptionModel> list = new ArrayList<>();
+
+        VideoOptionModel videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-all-videos", 1);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 1);
+        list.add(videoOptionModel);
+        GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
+        GSYVideoType.enableMediaCodecTexture();
+        list.add(videoOptionModel);
+        GSYVideoManager.instance().setOptionModelList(list);
+    }
+
+    public String getSecondaryStoragePath() {
+        try {
+            StorageManager sm = (StorageManager) getSystemService(STORAGE_SERVICE);
+            Method getVolumePathsMethod = StorageManager.class.getMethod("getVolumePaths", null);
+            String[] paths = (String[]) getVolumePathsMethod.invoke(sm, null);
+            Log.d(TAG, "SecondaryStoragePathSize: " + paths.length);
+            if (paths.length == 2) {
+                return paths[1];
+            } else if (paths.length == 3) {
+                return paths[2];
+            } else {
+                return paths.length <= 1 ? null : paths[1];
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "getSecondaryStoragePath() failed", e);
+            return null;
+        }
     }
 
     private void initPermissions() {
@@ -236,16 +210,63 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "Program exception, activity destroy ");
-        unregisterReceiver(myBroadcastReceiver);
     }
 
-    public class MyBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void updateMediaFile(String storagePath) {
+        Log.d(TAG, "updateMediaFile:00000000000 ");
+        CopyPasteUtil.build()
+                .setIsNeesDefaulProgressDialog(true)
+                .initValueAndGetDirSize(MainActivity.this, new File(storagePath), new CopyPasteUtil.InitListener() {
+                    @Override
+                    public void onNext(long dirFileCount, long dirSize, CopyPasteUtil.CopyPasteImp imp) {
+                        int fileVolume = (int) (dirSize / (1024 * 1024));
+                        imp.copyDirectiory(MainActivity.this, storagePath, Utils.filePath, new CopyPasteUtil.CopyPasteListener() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(TAG, "onSuccess: ");
+                                Message msg = Message.obtain();
+                                mHandler.sendMessage(msg);
+                                imp.getProgressDialog().dismiss();
+                            }
+
+                            @Override
+                            public void onProgress(long dirFileCount, long hasReadCount, long dirSize, long hasReadSize) {
+                                Log.d(TAG, "onProgress: " + dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
+                            }
+
+                            @Override
+                            public void onFail(String errorMsg) {
+
+                            }
+
+                            @Override
+                            public void onCancle() {
+
+                            }
+                        });
+                    }
+                });
+        banner.setVisibility(View.GONE);
+        mText.setVisibility(View.VISIBLE);
+//        banner.stopPlay();
+//        banner.destroy();
+    }
+
+
+    ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Log.d(TAG, "onServiceConnected: 0000000000");
+            serviceBinder = (StorageService.StorageServiceBinder) iBinder;
+            serviceBinder.getService().setCallback(MainActivity.this);
+        }
 
         @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive:00000000000 " );
-            banner.stopPlay();
+        public void onServiceDisconnected(ComponentName componentName) {
+
         }
-    }
+    };
+
 
 }

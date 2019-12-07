@@ -1,6 +1,7 @@
 package com.ctftek.player.banner;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -62,7 +63,6 @@ public class Banner extends RelativeLayout {
     //是否自动播放
     private boolean isAutoPlay = false;
     private Time time;
-    private List<BannerModel> bannerModels;
     private List<String> list;
     private List<View> views;
     private BannerViewAdapter mAdapter;
@@ -135,9 +135,6 @@ public class Banner extends RelativeLayout {
 
                     videoPlayer.setLayoutParams(lp);
                     videoPlayer.setUp(url, true, "");
-//                    PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
-//                    videoPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
-//                    videoPlayer.startPlayLogic();
                     videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
 
 //                        @Override
@@ -159,6 +156,7 @@ public class Banner extends RelativeLayout {
                 } else {
                     ImageView imageView = new ImageView(getContext());
                     imageView.setLayoutParams(lp);
+                    imageView.setBackgroundColor(Color.BLACK);
                     imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
                     views.add(imageView);
@@ -188,6 +186,7 @@ public class Banner extends RelativeLayout {
             } else {
                 ImageView imageView = new ImageView(getContext());
                 imageView.setLayoutParams(lp);
+                imageView.setBackgroundColor(Color.BLACK);
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
                 views.add(imageView);
@@ -347,12 +346,6 @@ public class Banner extends RelativeLayout {
         }
     };
 
-    private class BannerModel {
-        public String url;
-        public int playTime;
-        public int type = 0;
-    }
-
     /**
      * 获取delyedTime
      *
@@ -362,7 +355,6 @@ public class Banner extends RelativeLayout {
         View view1 = views.get(position);
         if (view1 instanceof StandardGSYVideoPlayer) {
             StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
-//            videoView.
             videoView.seekTo(0);
             delyedTime = videoView.getDuration();
             videoView.startPlayLogic();
@@ -399,18 +391,22 @@ public class Banner extends RelativeLayout {
     }
 
     public void stopPlay(){
+        this.setVisibility(GONE);
         if(views.size() != 0){
             View view1 = views.get(autoCurrIndex);
             Log.d(TAG, "stopPlay: " + autoCurrIndex);
             mHandler.removeCallbacks(runnable);
             if (view1 instanceof StandardGSYVideoPlayer) {
                 StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
-//            videoView.
                 videoView.release();
             } else {
+                ImageView imageView = (ImageView)view1;
+                imageView.setVisibility(GONE);
                 views.clear();
             }
         }
+        Log.d(TAG, "getVisibility: " + this.getVisibility());
+        removeAllViews();
     }
 
     public void destroy() {

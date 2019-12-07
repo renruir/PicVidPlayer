@@ -1,9 +1,13 @@
 package com.ctftek.player;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -30,20 +34,31 @@ public class CrashApplication extends Application {
 
     public void restartApp() {
         Log.d(TAG, "restartApp: " + 1111111111);
-        // fix our issues for sharedpreferences
-        SharedPreferences sp = getSharedPreferences("ACTIVE", MODE_PRIVATE);
-        SharedPreferences.Editor ed = sp.edit();
-        ed.putBoolean("active", false);
-        ed.commit();
+//        SharedPreferences sp = getSharedPreferences("ACTIVE", MODE_PRIVATE);
+//        SharedPreferences.Editor ed = sp.edit();
+//        ed.putBoolean("active", false);
+//        ed.commit();
+//        try{
+//            Thread.sleep(1000);
+//        }catch (InterruptedException e){
+//            Log.e(TAG, "error : ", e);
+//        }
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-//        RxBus.getDefault().post(RxBusConstant.FINISH);//把你退出APP的代码放在这，我这里使用了rxbus关闭所有Activity
+        PendingIntent restartIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, Intent.FLAG_ACTIVITY_NEW_TASK);
+        AlarmManager mgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 1000, restartIntent); // 1秒钟后重启应用
+        finishActivity();
+    }
+    public void finishActivity(){
+        for (Activity activity : mActivityList) {
+            if (null != activity) {
+                activity.finish();
+            }
+        }
+        //杀死该应用进程
         android.os.Process.killProcess(android.os.Process.myPid());
     }
-    /**
-     * 添加单个Activity
-     */
+
     public void addActivity(Activity activity) {
         // 为了避免重复添加，需要判断当前集合是否满足不存在该Activity
         if (!mActivityList.contains(activity)) {

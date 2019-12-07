@@ -1,4 +1,5 @@
 package com.ctftek.player;
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.util.Log;
@@ -53,6 +54,10 @@ public class CopyPasteUtil {
         private BufferedInputStream inbuff = null; //todo 屏蔽之后，代码照跑无误，严重怀疑buff是否还有作用，未针对调试。
         private BufferedOutputStream outbuff = null;
 
+        public CommonProgressDialog getProgressDialog() {
+            return progressDialog;
+        }
+
         /**
          * 复制单个文件
          */
@@ -65,7 +70,6 @@ public class CopyPasteUtil {
                     progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialog) {
-                            // TODO Auto-generated method stub
                             copyFileThread.interrupt();
                             copyFileThread = null;
                             try {
@@ -143,7 +147,6 @@ public class CopyPasteUtil {
                     progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialog) {
-                            // TODO Auto-generated method stub
                             copyFileThread.interrupt();
                             copyFileThread = null;
                             try {
@@ -184,8 +187,8 @@ public class CopyPasteUtil {
             for (int i = 0; i < file.length; i++) {
                 if (file[i].isFile()) {
                     File sourceFile = file[i];
-                    File targetFile = new File(
-                            new File(targetDir).getAbsolutePath() + File.separator + file[i].getName());// 目标文件
+                    progressDialog.setMessage("文件迁移正在进行中..." + file[i].getName());
+                    File targetFile = new File(new File(targetDir).getAbsolutePath() + File.separator + file[i].getName());// 目标文件
                     copyFileMethod(sourceFile, targetFile, call);
                 } else if (file[i].isDirectory()) {
                     String dir1 = sourceDir + "/" + file[i].getName();

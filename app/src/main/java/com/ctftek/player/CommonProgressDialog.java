@@ -30,13 +30,11 @@ public class CommonProgressDialog extends AlertDialog {
 
     public CommonProgressDialog(Context context) {
         super(context);
-// TODO Auto-generated constructor stub
         initFormats();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-// TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_progress_dialog);
         mProgress = (ProgressBar) findViewById(R.id.progress);
@@ -130,7 +128,6 @@ public class CommonProgressDialog extends AlertDialog {
 
     @Override
     public void setMessage(CharSequence message) {
-// TODO Auto-generated method stub
 //super.setMessage(message);
         if (mProgressMessage != null) {
             mViewUpdateHandler.post(new Runnable() {
@@ -147,17 +144,17 @@ public class CommonProgressDialog extends AlertDialog {
 
     @Override
     protected void onStart() {
-// TODO Auto-generated method stub
         super.onStart();
         mHasStarted = true;
     }
 
     @Override
     protected void onStop() {
-// TODO Auto-generated method stub
         super.onStop();
         mHasStarted = false;
     }
+
+
 
     static class ViewUpdateHandler extends Handler {
     }

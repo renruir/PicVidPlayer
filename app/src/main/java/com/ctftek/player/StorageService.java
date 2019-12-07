@@ -29,13 +29,27 @@ public class StorageService extends Service {
     private String mediaPath = "";
     private Messenger mMessenger;
     private Handler mHandler = new Handler();
+    private ServiceCallBack serviceCallBack;
+
+
+    public class StorageServiceBinder extends Binder{
+        public StorageService getService(){
+            return StorageService.this;
+        }
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "onCreate: 000000" );
+    }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "onBind: ");
         registerBroadCast();
-        return null;
+        return new StorageServiceBinder();
     }
 
 
@@ -45,16 +59,19 @@ public class StorageService extends Service {
         Log.d(TAG, "ctftek service start: ");
         flags = START_STICKY;
         registerBroadCast();
-//        sendBroadCast2Activity();
-        SharedPreferences sp = getSharedPreferences("ACTIVE", MODE_PRIVATE);
-        boolean active = sp.getBoolean("active", true);
-        Log.d(TAG, "onStartCommand: " + active);
-        if (!active) {
-            Intent i = new Intent(getApplicationContext(), MainActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(i);
-        }
+//        SharedPreferences sp = getSharedPreferences("ACTIVE", MODE_PRIVATE);
+//        boolean active = sp.getBoolean("active", true);
+//        Log.d(TAG, "onStartCommand: " + active);
+//        if (!active) {
+//            Intent i = new Intent(getApplicationContext(), MainActivity.class);
+//            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            startActivity(i);
+//        }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    public void setCallback(ServiceCallBack callback){
+        serviceCallBack = callback;
     }
 
     private void registerBroadCast() {
@@ -79,11 +96,12 @@ public class StorageService extends Service {
                 Log.e(TAG, "插入存储设备：:" + intent.getData().getPath());
                 String path = intent.getData().getPath();
                 if (isContainResource(path)) {
-                    sendBroadCast2Activity();
+//                    sendBroadCast2Activity();
+                    serviceCallBack.updateMediaFile(mediaPath);
                     Utils.deleteFiles(Utils.filePath);
-                    Utils.copyFolder(mediaPath, Utils.filePath);
+//                    Utils.copyFolder(mediaPath, Utils.filePath);
                     Log.d(TAG, "onReceive: 文件复制完成！" );
-                    context.startActivity(new Intent(context, MainActivity.class));
+//                    context.startActivity(new Intent(context, MainActivity.class));
                 }
             } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED) ||
                     intent.getAction().equals("android.hardware.usb.action.USB_DEVICE_DETACHED")) {
