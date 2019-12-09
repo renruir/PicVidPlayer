@@ -31,8 +31,11 @@ import android.widget.Toast;
 import com.ctftek.player.banner.Banner;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
+import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
+import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
+import com.shuyu.gsyvideoplayer.player.SystemPlayerManager;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.xdandroid.hellodaemon.DaemonEnv;
 
@@ -61,11 +64,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     //data
     private List<String> fileList;
-    private Handler mHandler = new Handler(){
+    private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
-            Log.d(TAG, "handleMessage: from dialog" );
+            Log.d(TAG, "handleMessage: from dialog");
             initDate();
         }
     };
@@ -86,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initDate();
         initPlayer();
         getSecondaryStoragePath();
+        Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
     }
 
     private void initView() {
@@ -126,8 +130,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     }
 
     private void initPlayer() {
-        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+//        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+//        PlayerFactory.setPlayManager(SystemPlayerManager.class);
+        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+        CacheFactory.setCacheManager(ProxyCacheManager.class);
+//        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         List<VideoOptionModel> list = new ArrayList<>();
 
         VideoOptionModel videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
@@ -215,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     @Override
     public void updateMediaFile(String storagePath) {
         Log.d(TAG, "updateMediaFile:00000000000 ");
+
         CopyPasteUtil.build()
                 .setIsNeesDefaulProgressDialog(true)
                 .initValueAndGetDirSize(MainActivity.this, new File(storagePath), new CopyPasteUtil.InitListener() {
@@ -251,6 +259,22 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         mText.setVisibility(View.VISIBLE);
 //        banner.stopPlay();
 //        banner.destroy();
+    }
+
+    @Override
+    public void infoCallBack(String info) {
+        final AlertDialog.Builder normalDialog =
+                new AlertDialog.Builder(MainActivity.this);
+        normalDialog.setTitle("提示");
+        normalDialog.setMessage(info);
+        normalDialog.setNegativeButton("关闭",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        normalDialog.show();
     }
 
 

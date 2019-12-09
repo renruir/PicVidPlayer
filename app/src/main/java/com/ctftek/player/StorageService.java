@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -32,8 +33,8 @@ public class StorageService extends Service {
     private ServiceCallBack serviceCallBack;
 
 
-    public class StorageServiceBinder extends Binder{
-        public StorageService getService(){
+    public class StorageServiceBinder extends Binder {
+        public StorageService getService() {
             return StorageService.this;
         }
     }
@@ -41,7 +42,7 @@ public class StorageService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate: 000000" );
+        Log.d(TAG, "onCreate: 000000");
     }
 
     @Nullable
@@ -70,7 +71,7 @@ public class StorageService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    public void setCallback(ServiceCallBack callback){
+    public void setCallback(ServiceCallBack callback) {
         serviceCallBack = callback;
     }
 
@@ -96,12 +97,20 @@ public class StorageService extends Service {
                 Log.e(TAG, "插入存储设备：:" + intent.getData().getPath());
                 String path = intent.getData().getPath();
                 if (isContainResource(path)) {
-//                    sendBroadCast2Activity();
+                    long sdMediaSize = Utils.getFolderSize(new File(mediaPath));
+                    long deviceStorageSize = Utils.getInternalMemorySize(context);
+                    Log.d(TAG, "拷贝插入的容量媒体文件所需的容量为" + Formatter.formatFileSize(context, sdMediaSize) +
+                            ", 而设备存储容量只有：" + Formatter.formatFileSize(context, deviceStorageSize));
+                    if (sdMediaSize > deviceStorageSize) {
+                        String info = "拷贝插入的容量媒体文件所需的容量为" + Formatter.formatFileSize(context, sdMediaSize) +
+                                ", 而设备存储容量只有：" + Formatter.formatFileSize(context, deviceStorageSize) + "!";
+                        serviceCallBack.infoCallBack(info);
+                        return;
+                    }
                     serviceCallBack.updateMediaFile(mediaPath);
+                    Log.d(TAG, "onCreate size: " + Utils.getFolderSize(new File(mediaPath)));
                     Utils.deleteFiles(Utils.filePath);
-//                    Utils.copyFolder(mediaPath, Utils.filePath);
-                    Log.d(TAG, "onReceive: 文件复制完成！" );
-//                    context.startActivity(new Intent(context, MainActivity.class));
+                    Log.d(TAG, "onReceive: 文件复制完成！");
                 }
             } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED) ||
                     intent.getAction().equals("android.hardware.usb.action.USB_DEVICE_DETACHED")) {
@@ -122,6 +131,22 @@ public class StorageService extends Service {
                 Log.e(TAG, "存储目录有：" + files[i].getAbsolutePath());
                 if (files[i].getAbsolutePath().contains(FILE_NAME)) {
                     mediaPath = files[i].getAbsolutePath();
+                    Log.d(TAG, "mediaPath: " + mediaPath);
+                    if (!isEmptyFolder(mediaPath)) {
+                        return true;
+                    }
+                }else if(files[i].getAbsolutePath().contains("USB_DISK")){
+                    Log.d(TAG, "isContainResource: A usb disk");
+                    mediaPath = files[i].getAbsolutePath();
+                    File[] fs = new File(mediaPath).listFiles();
+                    for(int j = 0; j < fs.length; j++){
+                        if(fs[j].getAbsolutePath().contains(FILE_NAME)){
+                            mediaPath = fs[j].getAbsolutePath();
+                            if (!isEmptyFolder(mediaPath)) {
+                                return true;
+                            }
+                        }
+                    }
                     Log.d(TAG, "mediaPath: " + mediaPath);
                     if (!isEmptyFolder(mediaPath)) {
                         return true;
@@ -149,11 +174,17 @@ public class StorageService extends Service {
         return true;
     }
 
-    private void sendBroadCast2Activity(){
-        Log.d(TAG, "sendBroadCast2Activity: 55555555555555" );
+    private void sendBroadCast2Activity() {
+        Log.d(TAG, "sendBroadCast2Activity: 55555555555555");
         Intent intent = new Intent();
         intent.setAction("com.ctftek.storagestate.change");
 //        intent.setComponent(new ComponentName("com.ctftek.player", "com.ctftek.player.MainActivity.MyBroadcastReceiver"));
         sendBroadcast(intent);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(stroageBroadcastReceiver);
     }
 }

@@ -25,6 +25,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.ctftek.player.MVideoView;
 import com.ctftek.player.Utils;
+import com.ctftek.player.ui.GalleryTransformer;
 import com.ctftek.player.video.EmptyControlVideo;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.builder.GSYVideoOptionBuilder;
@@ -98,6 +99,12 @@ public class Banner extends RelativeLayout {
         viewPager = new ViewPager(getContext());
         LinearLayout.LayoutParams vp_param = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         viewPager.setLayoutParams(vp_param);
+        viewPager.setPageTransformer(true, new GalleryTransformer() {
+            @Override
+            public void transformPage(View page, float position) {
+                Log.i(TAG,"【page】："+page+"，【position】："+position);
+            }
+        });
         this.addView(viewPager);
     }
 

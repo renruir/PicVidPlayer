@@ -1,6 +1,10 @@
 package com.ctftek.player;
 
 import android.app.Activity;
+import android.content.Context;
+import android.os.Environment;
+import android.os.StatFs;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -94,6 +98,40 @@ public class Utils {
             }
         }
         return true;
+    }
+
+    /**
+     * 获取Android内部存储的大小
+     */
+    public static long getInternalMemorySize(Context context) {
+        File file = Environment.getDataDirectory();
+        StatFs statFs = new StatFs(file.getPath());
+        long blockSizeLong = statFs.getBlockSizeLong();
+        long blockCountLong = statFs.getBlockCountLong();
+        long size = blockCountLong * blockSizeLong;
+        Log.d(TAG, "getInternalMemorySize: " + size);
+//        return Formatter.formatFileSize(context, size);
+        return size;
+    }
+
+    /**
+     * 获取指定文件夹的大小
+     * @param file
+     * @return
+     */
+    public static long getFolderSize(File file) {
+        long size = 0;
+        try {
+            File[] fileList = file.listFiles();
+            for (int i = 0; i < fileList.length; i++) {
+                if (fileList[i].isDirectory()) size = size + getFolderSize(fileList[i]);
+                else size = size + fileList[i].length();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "getFolderSize: " + size);
+        return size;
     }
 
 //    public static boolean copy(String oldPath, String newPath){
