@@ -21,10 +21,13 @@ public class Utils {
 
     private static final String TAG = Utils.class.getName();
     public static final String filePath = "/mnt/sdcard/mediaResource";
-//    public static final String filePath = "/sdcard/mediaResource";//for 小米8\
+    //    public static final String filePath = "/sdcard/mediaResource";//for 小米8\
     private static Activity mActivity;
     private static Utils mUtils = null;
-    private Utils () {}
+
+    private Utils() {
+    }
+
     public static Utils getInstance(Activity activity) {
         if (mUtils == null) {
             synchronized (Utils.class) {
@@ -38,12 +41,14 @@ public class Utils {
     }
 
     public static List<String> getFilesAllName(String path) {
-        File file=new File(path);
-        File[] files=file.listFiles();
-        if (files == null){
-            Log.e("error","空目录");return null;}
+        File file = new File(path);
+        File[] files = file.listFiles();
+        if (files == null) {
+            Log.e("error", "空目录");
+            return null;
+        }
         List<String> s = new ArrayList<>();
-        for(int i =0;i<files.length;i++){
+        for (int i = 0; i < files.length; i++) {
             s.add(files[i].getAbsolutePath());
         }
         return s;
@@ -116,6 +121,7 @@ public class Utils {
 
     /**
      * 获取指定文件夹的大小
+     *
      * @param file
      * @return
      */
@@ -124,8 +130,11 @@ public class Utils {
         try {
             File[] fileList = file.listFiles();
             for (int i = 0; i < fileList.length; i++) {
-                if (fileList[i].isDirectory()) size = size + getFolderSize(fileList[i]);
-                else size = size + fileList[i].length();
+                if (fileList[i].isDirectory()) {
+                    size = size + getFolderSize(fileList[i]);
+                } else {
+                    size = size + fileList[i].length();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -263,11 +272,11 @@ public class Utils {
         }
     }
 
-    public static String getFileExtend(String filePath){
-        String exten ="";
+    public static String getFileExtend(String filePath) {
+        String exten = "";
         int i = filePath.lastIndexOf('.');
         if (i > 0) {
-            exten = filePath.substring(i+1);
+            exten = filePath.substring(i + 1);
         }
         return exten;
     }

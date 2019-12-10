@@ -113,16 +113,21 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
                 String url = files[i].getAbsolutePath();
                 if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
-                        Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") ||
+                        Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") || Utils.getFileExtend(url).equals("mpg") ||
                         Utils.getFileExtend(url).equals("jpg") || Utils.getFileExtend(url).equals("png") || Utils.getFileExtend(url).equals("jpeg")) {
                     fileList.add(files[i].getAbsolutePath());
                 }
             }
-            banner.setDataList(fileList);
-            banner.setImgDelyed(2000);
-            banner.startBanner();
-            banner.update();
-            banner.startAutoPlay();
+            try {
+                banner.setDataList(fileList);
+                banner.setImgDelyed(2000);
+                banner.startBanner();
+                banner.update();
+                banner.startAutoPlay();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         } else {
             banner.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
@@ -134,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 //        PlayerFactory.setPlayManager(SystemPlayerManager.class);
         PlayerFactory.setPlayManager(IjkPlayerManager.class);
         CacheFactory.setCacheManager(ProxyCacheManager.class);
+        IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
 //        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         List<VideoOptionModel> list = new ArrayList<>();
 
@@ -216,45 +222,60 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unbindService(serviceConnection);
         Log.d(TAG, "Program exception, activity destroy ");
     }
 
     @Override
     public void updateMediaFile(String storagePath) {
         Log.d(TAG, "updateMediaFile:00000000000 ");
+        try {
+            CopyPasteUtil.build()
+                    .setIsNeesDefaulProgressDialog(true)
+                    .initValueAndGetDirSize(MainActivity.this, new File(storagePath), new CopyPasteUtil.InitListener() {
+                        @Override
+                        public void onNext(long dirFileCount, long dirSize, CopyPasteUtil.CopyPasteImp imp) {
+                            int fileVolume = (int) (dirSize / (1024 * 1024));
+                           Log.d(TAG, "onNext->dirFileCount:" + dirFileCount + "==onNext->dirSize:" + fileVolume + "M");
 
-        CopyPasteUtil.build()
-                .setIsNeesDefaulProgressDialog(true)
-                .initValueAndGetDirSize(MainActivity.this, new File(storagePath), new CopyPasteUtil.InitListener() {
-                    @Override
-                    public void onNext(long dirFileCount, long dirSize, CopyPasteUtil.CopyPasteImp imp) {
-                        int fileVolume = (int) (dirSize / (1024 * 1024));
-                        imp.copyDirectiory(MainActivity.this, storagePath, Utils.filePath, new CopyPasteUtil.CopyPasteListener() {
-                            @Override
-                            public void onSuccess() {
-                                Log.d(TAG, "onSuccess: ");
-                                Message msg = Message.obtain();
-                                mHandler.sendMessage(msg);
-                                imp.getProgressDialog().dismiss();
-                            }
+                            imp.copyDirectiory(MainActivity.this, storagePath, Utils.filePath, new CopyPasteUtil.CopyPasteListener() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d(TAG, "onSuccess: ");
+                                    Message msg = Message.obtain();
+                                    mHandler.sendMessage(msg);
+                                    imp.getProgressDialog().dismiss();
+                                }
 
-                            @Override
-                            public void onProgress(long dirFileCount, long hasReadCount, long dirSize, long hasReadSize) {
-                                Log.d(TAG, "onProgress: " + dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
-                            }
+                                @Override
+                                public void onProgress(long dirFileCount, long hasReadCount, long dirSize, long hasReadSize) {
+                                    Log.d(TAG, "onProgress: " + dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
+                                }
 
-                            @Override
-                            public void onFail(String errorMsg) {
+                                @Override
+                                public void onFail(String errorMsg) {
+                                    Log.d(TAG, "onFail: ");
+                                    try {
+                                        MainActivity.this.finish();
+                                        CrashApplication crashApplication = (CrashApplication) MainActivity.this.getApplication();
+                                        crashApplication.restartApp();
+                                        throw new Exception("文件拷贝异常");
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
 
-                            }
+                                @Override
+                                public void onCancle() {
+                                    Log.d(TAG, "onCancle: ");
+                                }
+                            });
+                        }
+                    });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-                            @Override
-                            public void onCancle() {
-
-                            }
-                        });
-                    }
-                });
         banner.setVisibility(View.GONE);
         mText.setVisibility(View.VISIBLE);
 //        banner.stopPlay();

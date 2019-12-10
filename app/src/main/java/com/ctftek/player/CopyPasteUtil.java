@@ -2,7 +2,10 @@ package com.ctftek.player;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.text.format.Formatter;
 import android.util.Log;
+
+import com.ctftek.player.ui.CommonProgressDialog;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -11,10 +14,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 public class CopyPasteUtil {
+    private static final String TAG = CopyPasteUtil.class.getName();
+    private static Context mContext;
     /**
      * copy过程的监听接口
      */
@@ -98,6 +104,7 @@ public class CopyPasteUtil {
                         ByteBuffer buffer = ByteBuffer.allocate(4096);
                         long transferSize = 0;
                         long size = new File(oldPathName).length();
+                        Log.d("renrui", "old file size1111: " + size);
                         int fileVolume = (int) (size / 1024 / 1024);
                         int tempP = 0;
                         int progress = 0;
@@ -139,11 +146,15 @@ public class CopyPasteUtil {
          */
         public void copyDirectiory(Context context, String sourceDir, String targetDir, CopyPasteListener call) {
             if (context != null) {
+                mContext = context;
                 if (isNeesDefaulProgressDialog && null == progressDialog) {
                     progressDialog = new CommonProgressDialog(context);
                 }
                 if (null != progressDialog) {
                     progressDialog.setMessage("文件迁移正在进行中...");
+
+                    progressDialog.setMax((int) (Utils.getFolderSize(new File(sourceDir)) / (1024 * 1024)));
+
                     progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialog) {
@@ -200,6 +211,7 @@ public class CopyPasteUtil {
             //层级小于等于0，说明已经计算完毕，递归回到最顶层
             if (dirLevel <= 0 && null != call) {
                 if (null != progressDialog) {
+                    Log.d("renrui", "5555555555: ");
                     progressDialog.setMessage("文件迁移完成");
                     call.onSuccess();
                 }
@@ -225,9 +237,9 @@ public class CopyPasteUtil {
                 long transferSize = 0;
                 int tempP = 0;
                 int progress = 0;
-                if (null != progressDialog) {
-                    progressDialog.setMax(fileVolume * 1024 * 1024);
-                }
+//                if (null != progressDialog) {
+//                    progressDialog.setMax(fileVolume * 1024 * 1024);
+//                }
                 while (fileChannelInput.read(buffer) != -1) {
                     buffer.flip();
                     transferSize += fileChannelOutput.write(buffer);
@@ -264,6 +276,10 @@ public class CopyPasteUtil {
                     call.onFail(e.getMessage());
                 }
             } catch (IOException e) {
+                if (null != call) {
+                    call.onFail(e.getMessage());
+                }
+            } catch (Exception e){
                 if (null != call) {
                     call.onFail(e.getMessage());
                 }
@@ -321,6 +337,7 @@ public class CopyPasteUtil {
             if (file.isFile()) {
                 // 如果是文件，获取文件大小累加
                 dirSize += file.length();
+                Log.d("renrui", "dirSize: " + dirSize);
                 dirFileCount++;
             } else if (file.isDirectory()) {
                 dirLevel++; //进入下一层 层级+1
@@ -333,6 +350,7 @@ public class CopyPasteUtil {
             }
             //层级小于等于0，说明已经计算完毕，递归回到最顶层
             if (dirLevel <= 0 && null != call) {
+                Log.d("renrui", "old file dirSize: " + dirSize);
                 call.onNext(dirFileCount, dirSize, this);
             }
         }

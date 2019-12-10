@@ -102,7 +102,7 @@ public class Banner extends RelativeLayout {
         viewPager.setPageTransformer(true, new GalleryTransformer() {
             @Override
             public void transformPage(View page, float position) {
-                Log.i(TAG,"【page】："+page+"，【position】："+position);
+                Log.d(TAG,"page："+page+"，position："+position);
             }
         });
         this.addView(viewPager);
@@ -118,87 +118,85 @@ public class Banner extends RelativeLayout {
         } else {
             views.clear();
         }
+        try {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            RequestOptions options = new RequestOptions();
+            options.fitCenter();
+            //数据大于一条，才可以循环
+            if (dataList.size() > 1) {
+                autoCurrIndex = 1;
+                //循环数组，将首位各加一条数据
+                for (int i = 0; i < dataList.size() + 2; i++) {
+                    String url;
+                    if (i == 0) {
+                        url = dataList.get(dataList.size() - 1);
+                    } else if (i == dataList.size() + 1) {
+                        url = dataList.get(0);
+                    } else {
+                        url = dataList.get(i - 1);
+                    }
 
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        RequestOptions options = new RequestOptions();
-        options.fitCenter();
-        //数据大于一条，才可以循环
-        if (dataList.size() > 1) {
-            autoCurrIndex = 1;
-            //循环数组，将首位各加一条数据
-            for (int i = 0; i < dataList.size() + 2; i++) {
-                String url;
-                if (i == 0) {
-                    url = dataList.get(dataList.size() - 1);
-                } else if (i == dataList.size() + 1) {
-                    url = dataList.get(0);
-                } else {
-                    url = dataList.get(i - 1);
+                    if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
+                            Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") || Utils.getFileExtend(url).equals("mpg")) {
+                        Log.d(TAG, "setDataList: " + url);
+                        final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+
+                        videoPlayer.setLayoutParams(lp);
+                        videoPlayer.setUp(url, true, "");
+                        videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
+
+                            @Override
+                            public void onPlayError(String url, Object... objects) {
+                                Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
+                                videoPlayer.release();
+                                mHandler.removeCallbacks(runnable);
+                                mHandler.postDelayed(runnable, 100);
+                            }
+                        });
+                        views.add(videoPlayer);
+                    } else {
+                        ImageView imageView = new ImageView(getContext());
+                        imageView.setLayoutParams(lp);
+                        imageView.setBackgroundColor(Color.BLACK);
+                        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
+                        views.add(imageView);
+                    }
                 }
-
-                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
-                        Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts")) {
+            } else if (dataList.size() == 1) {
+                autoCurrIndex = 0;
+                String url = dataList.get(0);
+                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
                     final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
-
                     videoPlayer.setLayoutParams(lp);
+//                PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
                     videoPlayer.setUp(url, true, "");
+                    videoPlayer.startPlayLogic();
                     videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
-
-//                        @Override
-//                        public void onAutoComplete(String url, Object... objects) {
-//                            Log.d(TAG, "onAutoComplete: " + url);
-//                            videoPlayer.startPlayLogic();
-//                            views.add(videoPlayer);
-//                        }
 
                         @Override
                         public void onPlayError(String url, Object... objects) {
-                            Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
-                            videoPlayer.release();
+                            Log.e(TAG, "onPlayError:" + url);
                             mHandler.removeCallbacks(runnable);
                             mHandler.postDelayed(runnable, 100);
                         }
+
+
                     });
-                    views.add(videoPlayer);
+
                 } else {
                     ImageView imageView = new ImageView(getContext());
                     imageView.setLayoutParams(lp);
                     imageView.setBackgroundColor(Color.BLACK);
-                    imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                     Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
                     views.add(imageView);
                 }
             }
-        } else if (dataList.size() == 1) {
-            autoCurrIndex = 0;
-            String url = dataList.get(0);
-            if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
-                final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
-                videoPlayer.setLayoutParams(lp);
-//                PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
-                videoPlayer.setUp(url, true, "");
-                videoPlayer.startPlayLogic();
-                videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
-
-                    @Override
-                    public void onPlayError(String url, Object... objects) {
-                        Log.e(TAG, "onPlayError:" + url);
-                        mHandler.removeCallbacks(runnable);
-                        mHandler.postDelayed(runnable, 100);
-                    }
-
-
-                });
-
-            } else {
-                ImageView imageView = new ImageView(getContext());
-                imageView.setLayoutParams(lp);
-                imageView.setBackgroundColor(Color.BLACK);
-                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
-                views.add(imageView);
-            }
+        } catch (Exception e){
+            e.printStackTrace();
         }
+
     }
 
     public void setImgDelyed(int imgDelyed) {
@@ -206,6 +204,7 @@ public class Banner extends RelativeLayout {
     }
 
     public void startBanner() {
+        Log.d(TAG, "startBanner: 00000000");
         mAdapter = new BannerViewAdapter(views);
         viewPager.setAdapter(mAdapter);
         viewPager.setOffscreenPageLimit(1);

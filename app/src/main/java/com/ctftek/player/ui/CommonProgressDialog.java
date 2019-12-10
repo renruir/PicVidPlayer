@@ -1,4 +1,4 @@
-package com.ctftek.player;
+package com.ctftek.player.ui;
 
 
 import android.app.AlertDialog;
@@ -10,6 +10,8 @@ import android.text.SpannableString;
 import android.text.style.StyleSpan;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.ctftek.player.R;
 
 import java.text.NumberFormat;
 

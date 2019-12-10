@@ -112,8 +112,7 @@ public class StorageService extends Service {
                     Utils.deleteFiles(Utils.filePath);
                     Log.d(TAG, "onReceive: 文件复制完成！");
                 }
-            } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED) ||
-                    intent.getAction().equals("android.hardware.usb.action.USB_DEVICE_DETACHED")) {
+            } else  {
                 Log.e(TAG, "移除存储设备");
             }
         }
