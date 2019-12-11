@@ -104,13 +104,15 @@ public class CopyPasteUtil {
                         ByteBuffer buffer = ByteBuffer.allocate(4096);
                         long transferSize = 0;
                         long size = new File(oldPathName).length();
-                        Log.d("renrui", "old file size1111: " + size);
-                        int fileVolume = (int) (size / 1024 / 1024);
+                        Log.d(TAG, "old file size: " + size);
+                        int fileVolume = (int) (size / 1024 / 1024);//单位为M
                         int tempP = 0;
                         int progress = 0;
                         if (null != progressDialog) {
-                            progressDialog.setMax(fileVolume * 1024 * 1024);
+//                            progressDialog.setMax(fileVolume * 1024 * 1024);
+                            progressDialog.setMax(fileVolume);
                         }
+
                         while (fileChannelInput.read(buffer) != -1) {
                             buffer.flip();
                             transferSize += fileChannelOutput.write(buffer);
@@ -118,7 +120,8 @@ public class CopyPasteUtil {
                             if (progress > tempP) {
                                 tempP = progress;
                                 if (null != progressDialog) {
-                                    progressDialog.setProgress(progress * 1024 * 1024);
+//                                    progressDialog.setProgress(progress * 1024 * 1024);
+                                    progressDialog.setProgress(progress);
                                 }
                             }
                             buffer.clear();
@@ -152,8 +155,9 @@ public class CopyPasteUtil {
                 }
                 if (null != progressDialog) {
                     progressDialog.setMessage("文件迁移正在进行中...");
-
-                    progressDialog.setMax((int) (Utils.getFolderSize(new File(sourceDir)) / (1024 * 1024)));
+                    Log.d(TAG, "copyDirectiory size: " + Utils.getFolderSize(new File(sourceDir)));
+//                    dirSize = Utils.getFolderSize(new File(sourceDir));
+//                    progressDialog.setMax((int) (Utils.getFolderSize(new File(sourceDir)) / (1024 * 1024)));
 
                     progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
@@ -211,7 +215,7 @@ public class CopyPasteUtil {
             //层级小于等于0，说明已经计算完毕，递归回到最顶层
             if (dirLevel <= 0 && null != call) {
                 if (null != progressDialog) {
-                    Log.d("renrui", "5555555555: ");
+                    Log.d(TAG, "5555555555: ");
                     progressDialog.setMessage("文件迁移完成");
                     call.onSuccess();
                 }
@@ -220,7 +224,6 @@ public class CopyPasteUtil {
 
         /**
          * 复制单个文件，用于上面的复制文件夹方法
-         *
          * @param sourcefile 源文件路径
          * @param targetFile 目标路径
          */
@@ -230,24 +233,26 @@ public class CopyPasteUtil {
                 inbuff = new BufferedInputStream(fileInputStream);
                 fileOutputStream = new FileOutputStream(targetFile);// 新建文件输出流并对它进行缓冲
                 outbuff = new BufferedOutputStream(fileOutputStream);
-                int fileVolume = (int) (dirSize / (1024 * 1024));
+                int fileVolume = (int) (dirSize / (1024 * 1024));//单位为M
                 fileChannelOutput = fileOutputStream.getChannel();
                 fileChannelInput = fileInputStream.getChannel();
                 ByteBuffer buffer = ByteBuffer.allocate(4096);
                 long transferSize = 0;
                 int tempP = 0;
                 int progress = 0;
-//                if (null != progressDialog) {
+                if (null != progressDialog) {
 //                    progressDialog.setMax(fileVolume * 1024 * 1024);
-//                }
+                    progressDialog.setMax(fileVolume);
+                }
                 while (fileChannelInput.read(buffer) != -1) {
                     buffer.flip();
                     transferSize += fileChannelOutput.write(buffer);
-                    progress = (int) (transferSize + hasReadSize) / (1024 * 1024);
+                    progress = (int) ((transferSize + hasReadSize) / (1024 * 1024));
                     if (progress > tempP) {
                         tempP = progress;
                         if (null != progressDialog) {
-                            progressDialog.setProgress(progress * 1024 * 1024);
+//                            progressDialog.setProgress(progress * 1024 * 1024);//M
+                            progressDialog.setProgress(progress);
                         }
                         if (null != call) { //此处重点在于传递大小
                             call.onProgress(dirFileCount, hasReadCount, dirSize, transferSize + hasReadSize);
@@ -285,7 +290,6 @@ public class CopyPasteUtil {
                 }
             }
         }
-
 
         /**
          * 删除整个文件夹
@@ -337,7 +341,7 @@ public class CopyPasteUtil {
             if (file.isFile()) {
                 // 如果是文件，获取文件大小累加
                 dirSize += file.length();
-                Log.d("renrui", "dirSize: " + dirSize);
+                Log.d(TAG, "dirSize: " + dirSize);
                 dirFileCount++;
             } else if (file.isDirectory()) {
                 dirLevel++; //进入下一层 层级+1
@@ -350,7 +354,7 @@ public class CopyPasteUtil {
             }
             //层级小于等于0，说明已经计算完毕，递归回到最顶层
             if (dirLevel <= 0 && null != call) {
-                Log.d("renrui", "old file dirSize: " + dirSize);
+                Log.d(TAG, "old file dirSize: " + dirSize);
                 call.onNext(dirFileCount, dirSize, this);
             }
         }

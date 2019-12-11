@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -22,7 +23,7 @@ public class CommonProgressDialog extends AlertDialog {
     private TextView mProgressMessage;
     private Handler mViewUpdateHandler;
     private Runnable mViewUpdateRunnable;
-    private int mMax;
+    private  int mMax;
     private CharSequence mMessage;
     private boolean mHasStarted;
     private int mProgressVal;
@@ -48,8 +49,10 @@ public class CommonProgressDialog extends AlertDialog {
             public void run() {
                 int progress = mProgress.getProgress();
                 int max = mProgress.getMax();
-                double dProgress = (double) progress / (double) (1024 * 1024);
-                double dMax = (double) max / (double) (1024 * 1024);
+//                double dProgress = (double) progress / (double) (1024 * 1024);
+//                double dMax = (double) max / (double) (1024 * 1024);
+                double dProgress = (double) progress ;
+                double dMax = (double) max;
                 if (mProgressNumberFormat != null) {
                     String format = mProgressNumberFormat;
                     mProgressNumber.setText(String.format(format, dProgress, dMax));
@@ -120,6 +123,7 @@ public class CommonProgressDialog extends AlertDialog {
     }
 
     public void setProgress(int value) {
+        Log.d(TAG, "setProgress: " + value);
         if (mHasStarted) {
             mProgress.setProgress(value);
             onProgressChanged();

@@ -112,9 +112,10 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
                 String url = files[i].getAbsolutePath();
-                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
-                        Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") || Utils.getFileExtend(url).equals("mpg") ||
-                        Utils.getFileExtend(url).equals("jpg") || Utils.getFileExtend(url).equals("png") || Utils.getFileExtend(url).equals("jpeg")) {
+                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("wmv")||
+                Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") || Utils.getFileExtend(url).equals("mpg") ||
+                        Utils.getFileExtend(url).equals("jpg") || Utils.getFileExtend(url).equals("png") || Utils.getFileExtend(url).equals("jpeg"))
+                {
                     fileList.add(files[i].getAbsolutePath());
                 }
             }
@@ -136,8 +137,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initPlayer() {
 //        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-//        PlayerFactory.setPlayManager(SystemPlayerManager.class);
-        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+        PlayerFactory.setPlayManager(SystemPlayerManager.class);
+//        PlayerFactory.setPlayManager(IjkPlayerManager.class);
         CacheFactory.setCacheManager(ProxyCacheManager.class);
         IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
 //        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
@@ -236,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                         @Override
                         public void onNext(long dirFileCount, long dirSize, CopyPasteUtil.CopyPasteImp imp) {
                             int fileVolume = (int) (dirSize / (1024 * 1024));
-                           Log.d(TAG, "onNext->dirFileCount:" + dirFileCount + "==onNext->dirSize:" + fileVolume + "M");
+                            Log.d(TAG, "onNext->dirFileCount:" + dirFileCount + "==onNext->dirSize:" + fileVolume + "M");
 
                             imp.copyDirectiory(MainActivity.this, storagePath, Utils.filePath, new CopyPasteUtil.CopyPasteListener() {
                                 @Override
@@ -249,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
                                 @Override
                                 public void onProgress(long dirFileCount, long hasReadCount, long dirSize, long hasReadSize) {
-                                    Log.d(TAG, "onProgress: " + dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
+//                                    Log.d(TAG, "onProgress: " + dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
                                 }
 
                                 @Override

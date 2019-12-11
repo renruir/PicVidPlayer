@@ -137,8 +137,8 @@ public class Banner extends RelativeLayout {
                     }
 
                     if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
-                            Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") || Utils.getFileExtend(url).equals("mpg")) {
-                        Log.d(TAG, "setDataList: " + url);
+                            Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
+                            Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv") ) {
                         final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
 
                         videoPlayer.setLayoutParams(lp);
@@ -149,6 +149,7 @@ public class Banner extends RelativeLayout {
                             public void onPlayError(String url, Object... objects) {
                                 Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
                                 videoPlayer.release();
+                                viewPager.setCurrentItem(autoCurrIndex + 1);
                                 mHandler.removeCallbacks(runnable);
                                 mHandler.postDelayed(runnable, 100);
                             }
