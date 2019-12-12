@@ -102,7 +102,7 @@ public class Banner extends RelativeLayout {
         viewPager.setPageTransformer(true, new GalleryTransformer() {
             @Override
             public void transformPage(View page, float position) {
-                Log.d(TAG,"page："+page+"，position："+position);
+//                Log.d(TAG,"page："+page+"，position："+position);
             }
         });
         this.addView(viewPager);
@@ -167,23 +167,31 @@ public class Banner extends RelativeLayout {
             } else if (dataList.size() == 1) {
                 autoCurrIndex = 0;
                 String url = dataList.get(0);
-                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("avi")) {
+                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
+                        Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
+                        Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv")) {
                     final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+
                     videoPlayer.setLayoutParams(lp);
-//                PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
                     videoPlayer.setUp(url, true, "");
-                    videoPlayer.startPlayLogic();
                     videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
 
                         @Override
                         public void onPlayError(String url, Object... objects) {
-                            Log.e(TAG, "onPlayError:" + url);
+                            Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
+                            videoPlayer.release();
                             mHandler.removeCallbacks(runnable);
                             mHandler.postDelayed(runnable, 100);
                         }
 
-
+                        @Override
+                        public void onAutoComplete(String url, Object... objects) {
+                            super.onAutoComplete(url, objects);
+                            videoPlayer.startPlayLogic();
+                        }
                     });
+                    videoPlayer.startPlayLogic();
+                    views.add(videoPlayer);
 
                 } else {
                     ImageView imageView = new ImageView(getContext());

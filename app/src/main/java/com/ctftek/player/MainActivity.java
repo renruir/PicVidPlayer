@@ -137,8 +137,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initPlayer() {
 //        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-        PlayerFactory.setPlayManager(SystemPlayerManager.class);
-//        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+//        PlayerFactory.setPlayManager(SystemPlayerManager.class);
+        PlayerFactory.setPlayManager(IjkPlayerManager.class);
         CacheFactory.setCacheManager(ProxyCacheManager.class);
         IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
 //        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
