@@ -23,4 +23,22 @@
         android:text="文件夹为空，请把播放文件放入U盘或者TF中mediaResource文件夹（如没有，请自行创建）中，再插入设备！"
         android:textColor="#E91E63"
         android:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/input_password"
+        android:layout_gravity="right|top"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:onClick="exitApp"
+        android:layout_width="90dp"
+        android:layout_height="60dp" />
+
+    <ImageView
+        android:id="@+id/exit_area"
+        android:layout_gravity="right|bottom"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="20dp"
+        android:onClick="exitApp"
+        android:layout_width="90dp"
+        android:layout_height="60dp" />
 </FrameLayout>

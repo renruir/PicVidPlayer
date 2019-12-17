@@ -1,30 +1,30 @@
 package com.ctftek.player;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.UiThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.Messenger;
 import android.os.storage.StorageManager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +35,6 @@ import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
-import com.shuyu.gsyvideoplayer.player.SystemPlayerManager;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.xdandroid.hellodaemon.DaemonEnv;
 
@@ -44,8 +43,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
-import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class MainActivity extends AppCompatActivity implements ServiceCallBack {
@@ -58,8 +55,10 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     //view
     private Banner banner;
-    //    private NewBanner banner;
     private TextView mText;
+    private ImageView exitArea;
+    private ImageView inputArea;
+
     private StorageService.StorageServiceBinder serviceBinder;
 
     //data
@@ -95,6 +94,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private void initView() {
         mText = (TextView) findViewById(R.id.msg_text);
         banner = (Banner) findViewById(R.id.banner);
+        exitArea = (ImageView) findViewById(R.id.exit_area);
+        inputArea = (ImageView) findViewById(R.id.input_password);
     }
 
     private void initFile() {
@@ -112,16 +113,15 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
                 String url = files[i].getAbsolutePath();
-                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("wmv")||
-                Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") || Utils.getFileExtend(url).equals("mpg") ||
-                        Utils.getFileExtend(url).equals("jpg") || Utils.getFileExtend(url).equals("png") || Utils.getFileExtend(url).equals("jpeg"))
-                {
+                if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") || Utils.getFileExtend(url).equals("wmv") ||
+                        Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") || Utils.getFileExtend(url).equals("mpg") ||
+                        Utils.getFileExtend(url).equals("jpg") || Utils.getFileExtend(url).equals("png") || Utils.getFileExtend(url).equals("jpeg")) {
                     fileList.add(files[i].getAbsolutePath());
                 }
             }
             try {
                 banner.setDataList(fileList);
-                banner.setImgDelyed(2000);
+                banner.setImgDelyed(8000);
                 banner.startBanner();
                 banner.update();
                 banner.startAutoPlay();
@@ -192,29 +192,100 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initDate();
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            final AlertDialog.Builder normalDialog =
+    public void exitApp(View view) {
+        Log.d(TAG, "exitApp: 1111");
+        SharedPreferences sharedPreferences= getSharedPreferences("password", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if(view.getId() == R.id.exit_area){
+            final AlertDialog.Builder exitDialog =
                     new AlertDialog.Builder(MainActivity.this);
-            normalDialog.setTitle("提示");
-            normalDialog.setMessage("确定要退出播放吗？");
-            normalDialog.setPositiveButton("确定",
+            exitDialog.setTitle("请输入密码退出应用");
+            final EditText editPassword = new EditText(MainActivity.this);
+            editPassword.setInputType(129);
+            exitDialog.setView(editPassword);
+
+            exitDialog.setPositiveButton("确定",
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            banner.stopPlay();
-                            MainActivity.this.finish();
+                            String password = editPassword.getText().toString();
+                            String storagePassword = sharedPreferences.getString("password", "123456");
+                            if (storagePassword.equals(password)) {
+                                banner.stopPlay();
+                                MainActivity.this.finish();
+                            } else {
+                                Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
-            normalDialog.setNegativeButton("关闭",
+            exitDialog.setNegativeButton("关闭",
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                         }
                     });
-            normalDialog.show();
+            exitDialog.show();
+        } else if(view.getId() == R.id.input_password){
+            final AlertDialog.Builder newpasswordDialog =
+                    new AlertDialog.Builder(MainActivity.this);
+            newpasswordDialog.setTitle("请输入新的密码");
+            final EditText editPassword = new EditText(MainActivity.this);
+            newpasswordDialog.setView(editPassword);
+
+            newpasswordDialog.setPositiveButton("确定",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String password = editPassword.getText().toString();
+                            String regExp = "^[\\w_]{6,20}$";
+                            if(password.matches(regExp)){
+                                editor.putString("password", password);
+                                editor.commit();
+                            } else {
+                                Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字", Toast.LENGTH_SHORT).show();
+                            }
+
+
+                        }
+                    });
+            newpasswordDialog.setNegativeButton("关闭",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            newpasswordDialog.show();
+        }
+
+    }
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            return true;
+//            final AlertDialog.Builder normalDialog =
+//                    new AlertDialog.Builder(MainActivity.this);
+//            normalDialog.setTitle("提示");
+//            normalDialog.setMessage("确定要退出播放吗？");
+//            normalDialog.setPositiveButton("确定",
+//                    new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            banner.stopPlay();
+//                            MainActivity.this.finish();
+//                        }
+//                    });
+//            normalDialog.setNegativeButton("关闭",
+//                    new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            dialog.dismiss();
+//                        }
+//                    });
+//            normalDialog.show();
         }
         return super.onKeyDown(keyCode, event);
     }
