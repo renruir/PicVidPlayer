@@ -83,11 +83,15 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         TraceServiceImpl.sShouldStopService = false;
         DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
 
-        initView();
-        initFile();
-        initDate();
-        initPlayer();
-        getSecondaryStoragePath();
+        Intent i = new Intent(this, SplitScreenActivity.class);
+        startActivity(i);
+
+
+//        initView();
+//        initFile();
+//        initDate();
+//        initPlayer();
+//        getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
     }
 
