@@ -83,9 +83,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         TraceServiceImpl.sShouldStopService = false;
         DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
 
-        Intent i = new Intent(this, SplitScreenActivity.class);
+        Intent i = new Intent(this, TestActivity.class);
         startActivity(i);
-
 
 //        initView();
 //        initFile();

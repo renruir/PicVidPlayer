@@ -25,6 +25,8 @@
 
         <activity android:name=".SplitScreenActivity"/>
 
+        <activity android:name=".TestActivity" />
+
         <receiver
             android:name=".BootCompletedReceiver"
             android:enabled="true"
