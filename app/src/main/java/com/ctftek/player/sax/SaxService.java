@@ -11,7 +11,7 @@ import javax.xml.parsers.SAXParserFactory;
 public class SaxService {
 
     public SaxService() {
-        // TODO Auto-generated constructor stub
+
     }
 
     //方法：解析xml数据并返回，返回值类型是HashMap
@@ -31,7 +31,7 @@ public class SaxService {
             //返回解析结果。
             return myHandler.getList();  //在这里返回解析之后的数据
         } catch (Exception e) {
-            // TODO: handle exception
+            e.printStackTrace();
         }
         return null;
     }

@@ -7,12 +7,12 @@
     android:background="@color/gray"
     tools:context=".MainActivity">
 
-    <com.ctftek.player.banner.Banner
-        android:id="@+id/banner"
-        android:background="@color/white"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-    </com.ctftek.player.banner.Banner>
+<!--    <com.ctftek.player.banner.Banner-->
+<!--        android:id="@+id/banner"-->
+<!--        android:background="@color/white"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent" >-->
+<!--    </com.ctftek.player.banner.Banner>-->
 
     <TextView
         android:id="@+id/msg_text"

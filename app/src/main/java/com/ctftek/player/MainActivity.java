@@ -23,7 +23,9 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +37,7 @@ import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
+import com.shuyu.gsyvideoplayer.player.SystemPlayerManager;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.xdandroid.hellodaemon.DaemonEnv;
 
@@ -54,10 +57,13 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     //view
-    private Banner banner;
+    private Banner banner1;
+    private Banner banner2;
     private TextView mText;
     private ImageView exitArea;
     private ImageView inputArea;
+
+    private ViewGroup mRootView;
 
     private StorageService.StorageServiceBinder serviceBinder;
 
@@ -83,22 +89,36 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         TraceServiceImpl.sShouldStopService = false;
         DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
 
-        Intent i = new Intent(this, TestActivity.class);
-        startActivity(i);
+//        Intent i = new Intent(this, TestActivity.class);
+//        startActivity(i);
 
-//        initView();
-//        initFile();
-//        initDate();
-//        initPlayer();
-//        getSecondaryStoragePath();
+        initView();
+        initFile();
+        initDate();
+        initPlayer();
+        getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
     }
 
     private void initView() {
+        mRootView = findViewById(android.R.id.content);
         mText = (TextView) findViewById(R.id.msg_text);
-        banner = (Banner) findViewById(R.id.banner);
+//        banner = (Banner) findViewById(R.id.banner);
         exitArea = (ImageView) findViewById(R.id.exit_area);
         inputArea = (ImageView) findViewById(R.id.input_password);
+        banner1 = new Banner(this);
+        banner2 = new Banner(this);
+        mRootView.addView(banner1);
+        mRootView.addView(banner2);
+        FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        params1.width = 1080;
+        params1.height = 960;
+        banner1.setLayoutParams(params1);
+
+        banner2.setLayoutParams(params1);
+        banner2.setX(0);
+        banner2.setY(960);
     }
 
     private void initFile() {
@@ -111,7 +131,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         File[] files = file.listFiles();
         Log.d(TAG, "initDate: " + files.length);
         if (files.length != 0) {
-            banner.setVisibility(View.VISIBLE);
+            banner1.setVisibility(View.VISIBLE);
+            banner2.setVisibility(View.VISIBLE);
             mText.setVisibility(View.GONE);
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
@@ -123,25 +144,32 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 }
             }
             try {
-                banner.setDataList(fileList);
-                banner.setImgDelyed(8000);
-                banner.startBanner();
-                banner.update();
-                banner.startAutoPlay();
+                banner1.setDataList(fileList);
+                banner1.setImgDelyed(2000);
+                banner1.startBanner();
+                banner1.update();
+                banner1.startAutoPlay();
+
+                banner2.setDataList(fileList);
+                banner2.setImgDelyed(2000);
+                banner2.startBanner();
+                banner2.update();
+                banner2.startAutoPlay();
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         } else {
-            banner.setVisibility(View.GONE);
+            banner1.setVisibility(View.GONE);
+            banner2.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
         }
     }
 
     private void initPlayer() {
 //        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-//        PlayerFactory.setPlayManager(SystemPlayerManager.class);
-        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+        PlayerFactory.setPlayManager(SystemPlayerManager.class);
+//        PlayerFactory.setPlayManager(IjkPlayerManager.class);
         CacheFactory.setCacheManager(ProxyCacheManager.class);
         IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
 //        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
@@ -214,7 +242,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             String password = editPassword.getText().toString();
                             String storagePassword = sharedPreferences.getString("password", "123456");
                             if (storagePassword.equals(password)) {
-                                banner.stopPlay();
+                                banner1.stopPlay();
+                                banner2.stopPlay();
                                 MainActivity.this.finish();
                             } else {
                                 Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
@@ -351,7 +380,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             e.printStackTrace();
         }
 
-        banner.setVisibility(View.GONE);
+        banner1.setVisibility(View.GONE);
+        banner2.setVisibility(View.GONE);
         mText.setVisibility(View.VISIBLE);
 //        banner.stopPlay();
 //        banner.destroy();
