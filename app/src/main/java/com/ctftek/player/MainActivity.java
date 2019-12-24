@@ -19,7 +19,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.storage.StorageManager;
-import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -30,18 +29,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ctftek.player.banner.Banner;
+import com.bumptech.glide.Glide;
+import com.ctftek.player.banner.MixBanner;
 import com.ctftek.player.video.CustomManager;
-import com.ctftek.player.video.EmptyControlVideo;
-import com.shuyu.gsyvideoplayer.GSYVideoManager;
+import com.ctftek.player.video.MultiSampleVideo;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
-import com.shuyu.gsyvideoplayer.player.SystemPlayerManager;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.xdandroid.hellodaemon.DaemonEnv;
+import com.youth.banner.Banner;
+import com.youth.banner.BannerConfig;
+import com.youth.banner.Transformer;
+import com.youth.banner.loader.ImageLoader;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -59,11 +61,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     //view
-    private Banner banner1;
-    private Banner banner2;
+//    private MixBanner mixBanner1;
+    private MixBanner mixBanner2;
     private TextView mText;
     private ImageView exitArea;
     private ImageView inputArea;
+    private Banner imageBanner;
 
     private ViewGroup mRootView;
 
@@ -108,21 +111,22 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 //        banner = (Banner) findViewById(R.id.banner);
         exitArea = (ImageView) findViewById(R.id.exit_area);
         inputArea = (ImageView) findViewById(R.id.input_password);
-        banner1 = new Banner(this);
-        banner2 = new Banner(this);
-        mRootView.addView(banner1);
-        mRootView.addView(banner2);
+//        mixBanner1 = new MixBanner(this);
+        mixBanner2 = new MixBanner(this);
+        imageBanner = new Banner(this);
+        mRootView.addView(imageBanner);
+        mRootView.addView(mixBanner2);
         FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         params1.width = 960;
         params1.height = 1080;
-        banner1.setLayoutParams(params1);
-        banner1.setX(0);
-        banner1.setY(0);
+        imageBanner.setLayoutParams(params1);
+        imageBanner.setX(0);
+        imageBanner.setY(0);
 
-        banner2.setLayoutParams(params1);
-        banner2.setX(960);
-        banner2.setY(0);
+        mixBanner2.setLayoutParams(params1);
+        mixBanner2.setX(960);
+        mixBanner2.setY(0);
     }
 
     private void initFile() {
@@ -135,8 +139,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         File[] files = file.listFiles();
         Log.d(TAG, "initDate: " + files.length);
         if (files.length != 0) {
-            banner1.setVisibility(View.VISIBLE);
-            banner2.setVisibility(View.VISIBLE);
+            imageBanner.setVisibility(View.VISIBLE);
+            mixBanner2.setVisibility(View.VISIBLE);
             mText.setVisibility(View.GONE);
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
@@ -148,25 +152,41 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 }
             }
             try {
-                banner1.setDataList(fileList);
-                banner1.setImgDelyed(2000);
-                banner1.startBanner();
-                banner1.update();
-                banner1.startAutoPlay();
+                imageBanner.setBannerStyle(BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE);
+                imageBanner.setImageLoader(new MyLoader());
+                imageBanner.setImages(fileList);
+                List list_title = new ArrayList<>();
+                for(String title : fileList){
+                    list_title.add("");
+                }
+                imageBanner.setBannerTitles(list_title);
+                imageBanner.setBannerAnimation(Transformer.Default);
+                imageBanner.setDelayTime(1000);
+                imageBanner.isAutoPlay(true);
+                imageBanner.setIndicatorGravity(BannerConfig.CENTER);
+                imageBanner.start();
 
-                banner2.setDataList(fileList);
-                banner2.setImgDelyed(2000);
-                banner2.startBanner();
-                banner2.update();
-                banner2.startAutoPlay();
+                fileList.add("/mnt/sdcard/mediaResource/1.mp4");
+                mixBanner2.setDataList(fileList);
+                mixBanner2.setImgDelyed(2000);
+                mixBanner2.startBanner();
+                mixBanner2.update();
+                mixBanner2.startAutoPlay();
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         } else {
-            banner1.setVisibility(View.GONE);
-            banner2.setVisibility(View.GONE);
+            imageBanner.setVisibility(View.GONE);
+            mixBanner2.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private class MyLoader extends ImageLoader {
+        @Override
+        public void displayImage(Context context, Object path, ImageView imageView) {
+            Glide.with(context).load(new File((String) path)).into(imageView);
         }
     }
 
@@ -190,7 +210,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
         GSYVideoType.enableMediaCodecTexture();
         list.add(videoOptionModel);
-        CustomManager.getCustomManager(EmptyControlVideo.TAG).setOptionModelList(list);
+        CustomManager.getCustomManager(MultiSampleVideo.TAG).setOptionModelList(list);
+//        CustomManager.getCustomManager(EmptyControlVideo.TAG).setOptionModelList(list);
     }
 
     public String getSecondaryStoragePath() {
@@ -246,8 +267,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             String password = editPassword.getText().toString();
                             String storagePassword = sharedPreferences.getString("password", "123456");
                             if (storagePassword.equals(password)) {
-                                banner1.stopPlay();
-                                banner2.stopPlay();
+//                                imageBanner.stopPlay();
+                                mixBanner2.stopPlay();
                                 MainActivity.this.finish();
                             } else {
                                 Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
@@ -384,8 +405,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             e.printStackTrace();
         }
 
-        banner1.setVisibility(View.GONE);
-        banner2.setVisibility(View.GONE);
+        imageBanner.setVisibility(View.GONE);
+        mixBanner2.setVisibility(View.GONE);
         mText.setVisibility(View.VISIBLE);
 //        banner.stopPlay();
 //        banner.destroy();

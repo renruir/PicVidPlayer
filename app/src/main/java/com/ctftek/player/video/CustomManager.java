@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
+import com.ctftek.player.R;
 import com.shuyu.gsyvideoplayer.GSYVideoBaseManager;
 import com.shuyu.gsyvideoplayer.player.IPlayerManager;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
@@ -25,9 +26,9 @@ import static com.shuyu.gsyvideoplayer.utils.CommonUtil.hideNavKey;
 
 public class CustomManager extends GSYVideoBaseManager {
 
-//    public static final int SMALL_ID = R.id.custom_small_id;
-//
-//    public static final int FULLSCREEN_ID = R.id.custom_full_id;
+    public static final int SMALL_ID = R.id.custom_small_id;
+
+    public static final int FULLSCREEN_ID = R.id.custom_full_id;
 
     public static String TAG = "GSYVideoManager";
 
@@ -49,19 +50,19 @@ public class CustomManager extends GSYVideoBaseManager {
      * @return 返回是否全屏
      */
     @SuppressWarnings("ResourceType")
-//    public static boolean backFromWindowFull(Context context, String key) {
-//        boolean backFrom = false;
-//        ViewGroup vp = (ViewGroup) (CommonUtil.scanForActivity(context)).findViewById(Window.ID_ANDROID_CONTENT);
-//        View oldF = vp.findViewById(FULLSCREEN_ID);
-//        if (oldF != null) {
-//            backFrom = true;
-//            hideNavKey(context);
-//            if (getCustomManager(key).lastListener() != null) {
-//                getCustomManager(key).lastListener().onBackFullscreen();
-//            }
-//        }
-//        return backFrom;
-//    }
+    public static boolean backFromWindowFull(Context context, String key) {
+        boolean backFrom = false;
+        ViewGroup vp = (ViewGroup) (CommonUtil.scanForActivity(context)).findViewById(Window.ID_ANDROID_CONTENT);
+        View oldF = vp.findViewById(FULLSCREEN_ID);
+        if (oldF != null) {
+            backFrom = true;
+            hideNavKey(context);
+            if (getCustomManager(key).lastListener() != null) {
+                getCustomManager(key).lastListener().onBackFullscreen();
+            }
+        }
+        return backFrom;
+    }
 
     /**
      * 页面销毁了记得调用是否所有的video
@@ -173,15 +174,15 @@ public class CustomManager extends GSYVideoBaseManager {
      * 当前是否全屏状态
      *
      * @return 当前是否全屏状态， true代表是。
-//     */
-//    @SuppressWarnings("ResourceType")
-//    public static boolean isFullState(Activity activity) {
-//        ViewGroup vp = (ViewGroup) (CommonUtil.scanForActivity(activity)).findViewById(Window.ID_ANDROID_CONTENT);
-//        final View full = vp.findViewById(FULLSCREEN_ID);
-//        GSYVideoPlayer gsyVideoPlayer = null;
-//        if (full != null) {
-//            gsyVideoPlayer = (GSYVideoPlayer) full;
-//        }
-//        return gsyVideoPlayer != null;
-//    }
+     */
+    @SuppressWarnings("ResourceType")
+    public static boolean isFullState(Activity activity) {
+        ViewGroup vp = (ViewGroup) (CommonUtil.scanForActivity(activity)).findViewById(Window.ID_ANDROID_CONTENT);
+        final View full = vp.findViewById(FULLSCREEN_ID);
+        GSYVideoPlayer gsyVideoPlayer = null;
+        if (full != null) {
+            gsyVideoPlayer = (GSYVideoPlayer) full;
+        }
+        return gsyVideoPlayer != null;
+    }
 }

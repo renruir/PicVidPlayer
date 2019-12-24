@@ -2,21 +2,15 @@ package com.ctftek.player.banner;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
-import android.widget.VideoView;
 
 import androidx.annotation.RequiresApi;
 import androidx.viewpager.widget.ViewPager;
@@ -26,7 +20,8 @@ import com.bumptech.glide.request.RequestOptions;
 import com.ctftek.player.Utils;
 import com.ctftek.player.ui.GalleryTransformer;
 import com.ctftek.player.video.CustomManager;
-import com.ctftek.player.video.EmptyControlVideo;
+//import com.ctftek.player.video.EmptyControlVideo;
+import com.ctftek.player.video.MultiSampleVideo;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
@@ -35,19 +30,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
-import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
-import tv.danmaku.ijk.media.player.IjkMediaPlayer;
-
-import static com.shuyu.gsyvideoplayer.GSYVideoADManager.TAG;
-
 /**
  * Created by steven on 2018/5/14.
  */
 
-public class Banner extends RelativeLayout {
+public class MixBanner extends RelativeLayout {
 
-    private static final String TAG = Banner.class.getName();
+    private static final String TAG = MixBanner.class.getName();
     private ViewPager viewPager;
     private final int UPTATE_VIEWPAGER = 100;
     //图片默认时间间隔
@@ -64,26 +53,26 @@ public class Banner extends RelativeLayout {
     private BannerViewAdapter mAdapter;
     private Context mContext;
 
-    public Banner(Context context) {
+    public MixBanner(Context context) {
         super(context);
         mContext = context;
         init();
     }
 
-    public Banner(Context context, AttributeSet attrs) {
+    public MixBanner(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
         init();
     }
 
-    public Banner(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MixBanner(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
         init();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public Banner(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public MixBanner(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         mContext = context;
         init();
@@ -134,10 +123,10 @@ public class Banner extends RelativeLayout {
                     if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
                             Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
                             Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv") ) {
-                        final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                        final MultiSampleVideo videoPlayer = new MultiSampleVideo(getContext());
                         Log.d(TAG, "setDataList: " + videoPlayer.getGSYVideoManager().getClass().getName());
                         videoPlayer.setPlayTag(TAG);
-//                        videoPlayer.setPlayPosition(0);
+                        videoPlayer.setPlayPosition(i);
                         videoPlayer.setRotateViewAuto(true);
                         videoPlayer.setLockLand(true);
                         videoPlayer.setReleaseWhenLossAudio(false);
@@ -175,7 +164,7 @@ public class Banner extends RelativeLayout {
                 if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
                         Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
                         Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv")) {
-                    final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                    final MultiSampleVideo videoPlayer = new MultiSampleVideo(getContext());
 
                     videoPlayer.setLayoutParams(lp);
                     videoPlayer.setUp(url, true, "");
@@ -261,7 +250,7 @@ public class Banner extends RelativeLayout {
                 if (state == 0 && isAutoPlay && views.size() > 1) {
                     View view1 = views.get(pageIndex);
                     if (view1 instanceof StandardGSYVideoPlayer) {
-                        final EmptyControlVideo videoView = (EmptyControlVideo) view1;
+                        final MultiSampleVideo videoView = (MultiSampleVideo) view1;
 //                        int current = videoView.getPlayPosition();
 //                        PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
                         videoView.setVideoAllCallBack(new GSYSampleCallBack() {
@@ -387,7 +376,7 @@ public class Banner extends RelativeLayout {
                     int po = customManager.getPlayPosition();
                     //对应的播放列表TAG
                     Log.d(TAG, "PlayTag: " + customManager.getPlayTag());
-                    if (customManager.getPlayTag().equals(EmptyControlVideo.TAG)) {
+                    if (customManager.getPlayTag().equals(MultiSampleVideo.TAG)) {
                         CustomManager.releaseAllVideos(customManagerEntry.getKey());
                         removeKey.add(customManagerEntry.getKey());
                     }
