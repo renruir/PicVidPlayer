@@ -37,7 +37,7 @@ public class TestActivity extends AppCompatActivity {
                         File path = new File(xmlPath);
                         InputStream inputStream = new FileInputStream(path);
                         //调用类SaxService：解析流，同时设定需要解析的节点
-                        List<HashMap<String, String>> list = SaxService.readXML(inputStream, "SUBW1");
+                        List<HashMap<String, String>> list = SaxService.readXML(inputStream, "a");
                         Log.d(TAG, "run: " + list.size());
                         for (HashMap<String, String> map : list) {
                             Log.d(TAG, "xml: " + map.toString());

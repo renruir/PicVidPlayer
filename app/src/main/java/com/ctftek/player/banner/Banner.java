@@ -23,22 +23,17 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.ctftek.player.MVideoView;
 import com.ctftek.player.Utils;
 import com.ctftek.player.ui.GalleryTransformer;
+import com.ctftek.player.video.CustomManager;
 import com.ctftek.player.video.EmptyControlVideo;
-import com.shuyu.gsyvideoplayer.GSYVideoManager;
-import com.shuyu.gsyvideoplayer.builder.GSYVideoOptionBuilder;
-import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
-import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
-import com.shuyu.gsyvideoplayer.player.PlayerFactory;
-import com.shuyu.gsyvideoplayer.player.SystemPlayerManager;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
@@ -140,6 +135,16 @@ public class Banner extends RelativeLayout {
                             Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
                             Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv") ) {
                         final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                        Log.d(TAG, "setDataList: " + videoPlayer.getGSYVideoManager().getClass().getName());
+                        videoPlayer.setPlayTag(TAG);
+//                        videoPlayer.setPlayPosition(0);
+                        videoPlayer.setRotateViewAuto(true);
+                        videoPlayer.setLockLand(true);
+                        videoPlayer.setReleaseWhenLossAudio(false);
+                        videoPlayer.setShowFullAnimation(true);
+                        videoPlayer.setIsTouchWiget(false);
+
+                        videoPlayer.setNeedLockFull(true);
 
                         videoPlayer.setLayoutParams(lp);
                         videoPlayer.setUp(url, true, "");
@@ -190,6 +195,7 @@ public class Banner extends RelativeLayout {
                             videoPlayer.startPlayLogic();
                         }
                     });
+                    videoPlayer.setUpLazy(url, false, null, null, "这是title");
                     videoPlayer.startPlayLogic();
                     views.add(videoPlayer);
 
@@ -372,6 +378,27 @@ public class Banner extends RelativeLayout {
             StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
             videoView.seekTo(0);
             delyedTime = videoView.getDuration();
+            if (CustomManager.instance().size() >= 0) {
+                Map<String, CustomManager> map = CustomManager.instance();
+                List<String> removeKey = new ArrayList<>();
+                for (Map.Entry<String, CustomManager> customManagerEntry : map.entrySet()) {
+                    CustomManager customManager = customManagerEntry.getValue();
+                    //当前播放的位置
+                    int po = customManager.getPlayPosition();
+                    //对应的播放列表TAG
+                    Log.d(TAG, "PlayTag: " + customManager.getPlayTag());
+                    if (customManager.getPlayTag().equals(EmptyControlVideo.TAG)) {
+                        CustomManager.releaseAllVideos(customManagerEntry.getKey());
+                        removeKey.add(customManagerEntry.getKey());
+                    }
+                }
+                if(removeKey.size() > 0) {
+                    for (String key : removeKey) {
+                        map.remove(key);
+                    }
+//                    listMultiNormalAdapter.notifyDataSetChanged();
+                }
+            }
             videoView.startPlayLogic();
             time.getDelyedTime(videoView, runnable);
         } else {

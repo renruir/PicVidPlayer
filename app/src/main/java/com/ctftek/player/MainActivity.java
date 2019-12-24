@@ -31,6 +31,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ctftek.player.banner.Banner;
+import com.ctftek.player.video.CustomManager;
+import com.ctftek.player.video.EmptyControlVideo;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
@@ -112,13 +114,15 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         mRootView.addView(banner2);
         FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        params1.width = 1080;
-        params1.height = 960;
+        params1.width = 960;
+        params1.height = 1080;
         banner1.setLayoutParams(params1);
+        banner1.setX(0);
+        banner1.setY(0);
 
         banner2.setLayoutParams(params1);
-        banner2.setX(0);
-        banner2.setY(960);
+        banner2.setX(960);
+        banner2.setY(0);
     }
 
     private void initFile() {
@@ -168,8 +172,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initPlayer() {
 //        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-        PlayerFactory.setPlayManager(SystemPlayerManager.class);
-//        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+//        PlayerFactory.setPlayManager(SystemPlayerManager.class);
+        PlayerFactory.setPlayManager(IjkPlayerManager.class);
         CacheFactory.setCacheManager(ProxyCacheManager.class);
         IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
 //        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
@@ -186,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
         GSYVideoType.enableMediaCodecTexture();
         list.add(videoOptionModel);
-        GSYVideoManager.instance().setOptionModelList(list);
+        CustomManager.getCustomManager(EmptyControlVideo.TAG).setOptionModelList(list);
     }
 
     public String getSecondaryStoragePath() {
