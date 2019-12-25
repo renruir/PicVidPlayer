@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.ctftek.player.banner.MixBanner;
+import com.ctftek.player.sax.ParseXml;
 import com.ctftek.player.video.CustomManager;
 import com.ctftek.player.video.MultiSampleVideo;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private TextView mText;
     private ImageView exitArea;
     private ImageView inputArea;
-    private Banner imageBanner;
+    private List<Banner> banners = new ArrayList<>();
 
     private ViewGroup mRootView;
 
@@ -74,6 +75,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     //data
     private List<String> fileList;
+    private List<ParseXml.VideoInfo> videoInfoList;
+    private List<String> videoFilelist = new ArrayList<>();
+    private List<List<ParseXml.ImageInfo>> imageInfoList;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
@@ -99,7 +103,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         initView();
         initFile();
-        initDate();
+//        initDate();
+        try {
+            initXmlData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         initPlayer();
         getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
@@ -112,25 +121,99 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         exitArea = (ImageView) findViewById(R.id.exit_area);
         inputArea = (ImageView) findViewById(R.id.input_password);
 //        mixBanner1 = new MixBanner(this);
-        mixBanner2 = new MixBanner(this);
-        imageBanner = new Banner(this);
-        mRootView.addView(imageBanner);
-        mRootView.addView(mixBanner2);
-        FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        params1.width = 960;
-        params1.height = 1080;
-        imageBanner.setLayoutParams(params1);
-        imageBanner.setX(0);
-        imageBanner.setY(0);
 
-        mixBanner2.setLayoutParams(params1);
-        mixBanner2.setX(960);
-        mixBanner2.setY(0);
+//        imageBanner = new Banner(this);
+//        mRootView.addView(imageBanner);
+//
+//        FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
+//                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+//        params1.width = 960;
+//        params1.height = 1080;
+//        imageBanner.setLayoutParams(params1);
+//        imageBanner.setX(0);
+//        imageBanner.setY(0);
     }
 
     private void initFile() {
         Utils.isExist(Utils.filePath);
+    }
+
+    private void initXmlData() throws Exception{
+        String xmlPath = Utils.filePath + "/playerlist.xml";
+        ParseXml parseXml  = new ParseXml();
+        parseXml.parseXml(xmlPath);
+        videoInfoList = parseXml.getVideoInfoList();
+        imageInfoList = parseXml.getImagesInfo();
+
+        mixBanner2 = new MixBanner(this);
+        mRootView.addView(mixBanner2);
+        FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        params1.width = videoInfoList.get(0).getRect()[2];
+        params1.height = videoInfoList.get(0).getRect()[3];
+        Log.d(TAG, "w: " + videoInfoList.get(0).getRect()[2]);
+        Log.d(TAG, "h: " + videoInfoList.get(0).getRect()[3]);
+        Log.d(TAG, "x: " + videoInfoList.get(0).getRect()[0]);
+        Log.d(TAG, "y: " + videoInfoList.get(0).getRect()[1]);
+        mixBanner2.setLayoutParams(params1);
+        mixBanner2.setX(videoInfoList.get(0).getRect()[0]);
+        mixBanner2.setY(videoInfoList.get(0).getRect()[1]);
+
+        for(ParseXml.VideoInfo info:videoInfoList){
+            videoFilelist.add(info.getName());
+        }
+        mixBanner2.setDataList(videoFilelist);
+        mixBanner2.setImgDelyed(2000);
+        mixBanner2.startBanner();
+        mixBanner2.update();
+        mixBanner2.startAutoPlay();
+
+        for(List<ParseXml.ImageInfo> infosList: imageInfoList){
+            for(ParseXml.ImageInfo info:infosList){
+                Banner imageBanner = new Banner(this);
+                mRootView.addView(imageBanner);
+                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                params.width = info.getRect()[2];
+                params.height = info.getRect()[3];
+                imageBanner.setLayoutParams(params);
+                imageBanner.setX(info.getRect()[0]);
+                imageBanner.setY(info.getRect()[1]);
+                Log.d(TAG, "w: " + info.getRect()[2]);
+                Log.d(TAG, "h: " + info.getRect()[3]);
+                Log.d(TAG, "x: " + info.getRect()[0]);
+                Log.d(TAG, "y: " + info.getRect()[1]);
+                imageBanner.setBannerStyle(BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE);
+                imageBanner.setImageLoader(new MyLoader());
+                imageBanner.setImages(info.getNames());
+                List list_title = new ArrayList<>();
+                for (String title : info.getNames()) {
+                    list_title.add("");
+                }
+                imageBanner.setBannerTitles(list_title);
+                imageBanner.setBannerAnimation(Transformer.Default);
+                imageBanner.setDelayTime(1000);
+                imageBanner.isAutoPlay(true);
+                imageBanner.setIndicatorGravity(BannerConfig.CENTER);
+                imageBanner.start();
+                banners.add(imageBanner);
+            }
+        }
+
+
+        if(videoInfoList.isEmpty() && imageInfoList.isEmpty()){
+            for(Banner b:banners){
+                b.setVisibility(View.GONE);
+            }
+            mixBanner2.setVisibility(View.GONE);
+            mText.setVisibility(View.VISIBLE);
+        } else {
+            for(Banner b:banners){
+                b.setVisibility(View.VISIBLE);
+            }
+            mixBanner2.setVisibility(View.VISIBLE);
+            mText.setVisibility(View.GONE);
+        }
     }
 
     private void initDate() {
@@ -139,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         File[] files = file.listFiles();
         Log.d(TAG, "initDate: " + files.length);
         if (files.length != 0) {
-            imageBanner.setVisibility(View.VISIBLE);
+//            imageBanner.setVisibility(View.VISIBLE);
             mixBanner2.setVisibility(View.VISIBLE);
             mText.setVisibility(View.GONE);
             for (int i = 0; i < files.length; i++) {
@@ -152,21 +235,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 }
             }
             try {
-                imageBanner.setBannerStyle(BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE);
-                imageBanner.setImageLoader(new MyLoader());
-                imageBanner.setImages(fileList);
-                List list_title = new ArrayList<>();
-                for(String title : fileList){
-                    list_title.add("");
-                }
-                imageBanner.setBannerTitles(list_title);
-                imageBanner.setBannerAnimation(Transformer.Default);
-                imageBanner.setDelayTime(1000);
-                imageBanner.isAutoPlay(true);
-                imageBanner.setIndicatorGravity(BannerConfig.CENTER);
-                imageBanner.start();
 
-                fileList.add("/mnt/sdcard/mediaResource/1.mp4");
+
                 mixBanner2.setDataList(fileList);
                 mixBanner2.setImgDelyed(2000);
                 mixBanner2.startBanner();
@@ -177,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             }
 
         } else {
-            imageBanner.setVisibility(View.GONE);
+//            imageBanner.setVisibility(View.GONE);
             mixBanner2.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
         }
@@ -250,9 +320,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     public void exitApp(View view) {
         Log.d(TAG, "exitApp: 1111");
-        SharedPreferences sharedPreferences= getSharedPreferences("password", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        if(view.getId() == R.id.exit_area){
+        if (view.getId() == R.id.exit_area) {
             final AlertDialog.Builder exitDialog =
                     new AlertDialog.Builder(MainActivity.this);
             exitDialog.setTitle("请输入密码退出应用");
@@ -283,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                         }
                     });
             exitDialog.show();
-        } else if(view.getId() == R.id.input_password){
+        } else if (view.getId() == R.id.input_password) {
             final AlertDialog.Builder newpasswordDialog =
                     new AlertDialog.Builder(MainActivity.this);
             newpasswordDialog.setTitle("请输入新的密码");
@@ -296,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                         public void onClick(DialogInterface dialog, int which) {
                             String password = editPassword.getText().toString();
                             String regExp = "^[\\w_]{6,20}$";
-                            if(password.matches(regExp)){
+                            if (password.matches(regExp)) {
                                 editor.putString("password", password);
                                 editor.commit();
                             } else {
@@ -405,7 +475,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             e.printStackTrace();
         }
 
-        imageBanner.setVisibility(View.GONE);
+//        imageBanner.setVisibility(View.GONE);
         mixBanner2.setVisibility(View.GONE);
         mText.setVisibility(View.VISIBLE);
 //        banner.stopPlay();
