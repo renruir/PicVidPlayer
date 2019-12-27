@@ -140,6 +140,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initXmlData() throws Exception{
         String xmlPath = Utils.filePath + "/playerlist.xml";
+        if(!new File(xmlPath).exists()){
+            return;
+        }
         ParseXml parseXml  = new ParseXml();
         parseXml.parseXml(xmlPath);
         videoInfoList = parseXml.getVideoInfoList();
@@ -338,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             String storagePassword = sharedPreferences.getString("password", "123456");
                             if (storagePassword.equals(password)) {
 //                                imageBanner.stopPlay();
-                                mixBanner2.stopPlay();
+//                                mixBanner2.stopPlay();
                                 MainActivity.this.finish();
                             } else {
                                 Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
@@ -393,26 +396,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             return true;
-//            final AlertDialog.Builder normalDialog =
-//                    new AlertDialog.Builder(MainActivity.this);
-//            normalDialog.setTitle("提示");
-//            normalDialog.setMessage("确定要退出播放吗？");
-//            normalDialog.setPositiveButton("确定",
-//                    new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            banner.stopPlay();
-//                            MainActivity.this.finish();
-//                        }
-//                    });
-//            normalDialog.setNegativeButton("关闭",
-//                    new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            dialog.dismiss();
-//                        }
-//                    });
-//            normalDialog.show();
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -476,8 +459,14 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
 
 //        imageBanner.setVisibility(View.GONE);
-        mixBanner2.setVisibility(View.GONE);
-        mText.setVisibility(View.VISIBLE);
+        if(banners != null&& mixBanner2!=null){
+            for(Banner b:banners){
+                b.setVisibility(View.GONE);
+            }
+            mixBanner2.setVisibility(View.GONE);
+            mixBanner2.setVisibility(View.GONE);
+            mText.setVisibility(View.VISIBLE);
+        }
 //        banner.stopPlay();
 //        banner.destroy();
     }
