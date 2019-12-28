@@ -21,6 +21,7 @@ public class Utils {
 
     private static final String TAG = Utils.class.getName();
     public static final String filePath = "/mnt/sdcard/mediaResource";
+    public static final String legalPath = "/sys/class/leds/ctf-blue";
     //    public static final String filePath = "/sdcard/mediaResource";//for 小米8\
     private static Activity mActivity;
     private static Utils mUtils = null;

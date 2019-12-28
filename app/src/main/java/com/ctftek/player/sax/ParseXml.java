@@ -32,6 +32,7 @@ public class ParseXml {
     private List<List<ImageInfo>> imgInfos = new ArrayList<>();
 
     private int videoRec[] = new int[4];
+    private int imageDelay = 8;
 
     private String filePath = Utils.filePath;
 
@@ -83,7 +84,7 @@ public class ParseXml {
                         Element ele = (Element) node;
                         images = getImageNames(ele);
                     } else {
-                        Log.d(TAG, "parseXml: " + sb);
+                        Log.d(TAG, "parseXml: " + sb.length);
                         if (sb != null) {
                             for (int k = 0; k < sb.length; k++) {
                                 Log.d(TAG, "sub window name: " + sb[k]);
@@ -92,6 +93,7 @@ public class ParseXml {
                                     ImageInfo imageInfo = new ImageInfo();
                                     imageInfo.setRect(getSubRect(ele));
                                     imageInfo.setNames(getSubImageNames(ele));
+                                    imageInfo.setDelay(imageDelay);
                                     imageInfoList.add(imageInfo);
                                     imgInfos.add(imageInfoList);
                                 }
@@ -140,6 +142,8 @@ public class ParseXml {
             Node node = propertyEleList.item(i);
             Element propertyEle = (Element) node;
             String p = filePath + File.separator + images[Integer.parseInt(propertyEle.getAttribute("i"))];
+            imageDelay = Integer.parseInt(propertyEle.getAttribute("t"));
+            Log.d(TAG, "Image delay: " + imageDelay);
             Log.d(TAG, "getSubImageNames: " + p);
             imageNames.add(p);
         }
@@ -191,6 +195,7 @@ public class ParseXml {
     public class ImageInfo {
         List<String> names;
         int[] rect;
+        int delay;
 
         public List<String> getNames() {
             return names;
@@ -206,6 +211,14 @@ public class ParseXml {
 
         public void setRect(int[] rect) {
             this.rect = rect;
+        }
+
+        public int getDelay() {
+            return delay;
+        }
+
+        public void setDelay(int delay) {
+            this.delay = delay;
         }
     }
 

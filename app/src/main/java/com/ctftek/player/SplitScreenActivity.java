@@ -13,33 +13,36 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.ctftek.player.banner.VideoBanner;
 
 import java.io.File;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SplitScreenActivity extends AppCompatActivity {
 
+    private static final String TAG = SplitScreenActivity.class.getName();
     private ViewGroup mRootView;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_split_screen);
+        Log.d(TAG, "onCreate: 777777777777777");
         mRootView = findViewById(android.R.id.content);
+        VideoBanner videoBanner = new VideoBanner(this);
+        mRootView.addView(videoBanner);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        videoBanner.setLayoutParams(lp);
+        String url1 = "/mnt/sdcard/mediaResource/1.mp4";
+        String url2 = "/mnt/sdcard/mediaResource/2.mp4";
+        String url3 = "/mnt/sdcard/mediaResource/3.mp4";
+        List<String> videoList = new ArrayList<>();
+        videoList.add(url1);
+        videoList.add(url2);
+        videoList.add(url3);
+        videoBanner.setVideoList(videoList);
     }
 
-    public void processBtn(View view) {
-        Log.d("renrui", "processBtn: ");
-        ImageView imageView = new ImageView(this);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        params.width = 100;
-        params.height = 100;
-        imageView.setLayoutParams(params);
-        addContentView(imageView, params);
-        RequestOptions options = new RequestOptions();
-        options.fitCenter();
-        Glide.with(this).load(R.drawable.test_image).apply(options).into(imageView);
-        imageView.setX(100);
-        imageView.setY(500);
 
-    }
 }

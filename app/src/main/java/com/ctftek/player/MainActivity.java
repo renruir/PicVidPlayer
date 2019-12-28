@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.animation.LayoutTransition;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
@@ -19,6 +20,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.storage.StorageManager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -26,11 +28,13 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.ctftek.player.banner.MixBanner;
+import com.ctftek.player.banner.VideoBanner;
 import com.ctftek.player.sax.ParseXml;
 import com.ctftek.player.video.CustomManager;
 import com.ctftek.player.video.MultiSampleVideo;
@@ -63,7 +67,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     //view
 //    private MixBanner mixBanner1;
-    private MixBanner mixBanner2;
+//    private MixBanner mixBanner2;
+    private VideoBanner videoBanner;
     private TextView mText;
     private ImageView exitArea;
     private ImageView inputArea;
@@ -83,13 +88,23 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
             Log.d(TAG, "handleMessage: from dialog");
-            initDate();
+//            initDate();
+            try {
+                initXmlData();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(!initLegalDevice()){
+            finish();
+            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+            return;
+        }
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
@@ -109,9 +124,18 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        initPlayer();
+//        initPlayer();
         getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
+    }
+
+    private boolean initLegalDevice() {
+        File f = new File(Utils.legalPath);
+        if (!f.exists()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private void initView() {
@@ -138,18 +162,20 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         Utils.isExist(Utils.filePath);
     }
 
-    private void initXmlData() throws Exception{
+    private void initXmlData() throws Exception {
         String xmlPath = Utils.filePath + "/playerlist.xml";
-        if(!new File(xmlPath).exists()){
+        if (!new File(xmlPath).exists()) {
             return;
         }
-        ParseXml parseXml  = new ParseXml();
+        ParseXml parseXml = new ParseXml();
         parseXml.parseXml(xmlPath);
         videoInfoList = parseXml.getVideoInfoList();
         imageInfoList = parseXml.getImagesInfo();
 
-        mixBanner2 = new MixBanner(this);
-        mRootView.addView(mixBanner2);
+        videoBanner = new VideoBanner(this);
+//        mixBanner2 = new MixBanner(this);
+        mRootView.addView(videoBanner);
+//        mRootView.addView(mixBanner2);
         FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         params1.width = videoInfoList.get(0).getRect()[2];
@@ -158,21 +184,22 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         Log.d(TAG, "h: " + videoInfoList.get(0).getRect()[3]);
         Log.d(TAG, "x: " + videoInfoList.get(0).getRect()[0]);
         Log.d(TAG, "y: " + videoInfoList.get(0).getRect()[1]);
-        mixBanner2.setLayoutParams(params1);
-        mixBanner2.setX(videoInfoList.get(0).getRect()[0]);
-        mixBanner2.setY(videoInfoList.get(0).getRect()[1]);
+        videoBanner.setLayoutParams(params1);
+        videoBanner.setX(videoInfoList.get(0).getRect()[0]);
+        videoBanner.setY(videoInfoList.get(0).getRect()[1]);
 
-        for(ParseXml.VideoInfo info:videoInfoList){
+        for (ParseXml.VideoInfo info : videoInfoList) {
             videoFilelist.add(info.getName());
         }
-        mixBanner2.setDataList(videoFilelist);
-        mixBanner2.setImgDelyed(2000);
-        mixBanner2.startBanner();
-        mixBanner2.update();
-        mixBanner2.startAutoPlay();
+//        mixBanner2.setDataList(videoFilelist);
+//        mixBanner2.setImgDelyed(2000);
+//        mixBanner2.startBanner();
+//        mixBanner2.update();
+//        mixBanner2.startAutoPlay();
+        videoBanner.setVideoList(videoFilelist);
 
-        for(List<ParseXml.ImageInfo> infosList: imageInfoList){
-            for(ParseXml.ImageInfo info:infosList){
+        for (List<ParseXml.ImageInfo> infosList : imageInfoList) {
+            for (ParseXml.ImageInfo info : infosList) {
                 Banner imageBanner = new Banner(this);
                 mRootView.addView(imageBanner);
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
@@ -195,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 }
                 imageBanner.setBannerTitles(list_title);
                 imageBanner.setBannerAnimation(Transformer.Default);
-                imageBanner.setDelayTime(1000);
+                imageBanner.setDelayTime(info.getDelay() * 1000);
                 imageBanner.isAutoPlay(true);
                 imageBanner.setIndicatorGravity(BannerConfig.CENTER);
                 imageBanner.start();
@@ -204,17 +231,17 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
 
 
-        if(videoInfoList.isEmpty() && imageInfoList.isEmpty()){
-            for(Banner b:banners){
+        if (videoInfoList.isEmpty() && imageInfoList.isEmpty()) {
+            for (Banner b : banners) {
                 b.setVisibility(View.GONE);
             }
-            mixBanner2.setVisibility(View.GONE);
+            videoBanner.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
         } else {
-            for(Banner b:banners){
+            for (Banner b : banners) {
                 b.setVisibility(View.VISIBLE);
             }
-            mixBanner2.setVisibility(View.VISIBLE);
+            videoBanner.setVisibility(View.VISIBLE);
             mText.setVisibility(View.GONE);
         }
     }
@@ -226,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         Log.d(TAG, "initDate: " + files.length);
         if (files.length != 0) {
 //            imageBanner.setVisibility(View.VISIBLE);
-            mixBanner2.setVisibility(View.VISIBLE);
+            videoBanner.setVisibility(View.VISIBLE);
             mText.setVisibility(View.GONE);
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
@@ -238,20 +265,18 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 }
             }
             try {
-
-
-                mixBanner2.setDataList(fileList);
-                mixBanner2.setImgDelyed(2000);
-                mixBanner2.startBanner();
-                mixBanner2.update();
-                mixBanner2.startAutoPlay();
+//                mixBanner2.setDataList(fileList);
+//                mixBanner2.setImgDelyed(2000);
+//                mixBanner2.startBanner();
+//                mixBanner2.update();
+//                mixBanner2.startAutoPlay();
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         } else {
 //            imageBanner.setVisibility(View.GONE);
-            mixBanner2.setVisibility(View.GONE);
+            videoBanner.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
         }
     }
@@ -259,33 +284,10 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private class MyLoader extends ImageLoader {
         @Override
         public void displayImage(Context context, Object path, ImageView imageView) {
-            Glide.with(context).load(new File((String) path)).into(imageView);
+            Glide.with(context).asBitmap().load(new File((String) path)).into(imageView);
         }
     }
 
-    private void initPlayer() {
-//        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-//        PlayerFactory.setPlayManager(SystemPlayerManager.class);
-        PlayerFactory.setPlayManager(IjkPlayerManager.class);
-        CacheFactory.setCacheManager(ProxyCacheManager.class);
-        IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
-//        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
-        List<VideoOptionModel> list = new ArrayList<>();
-
-        VideoOptionModel videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
-        list.add(videoOptionModel);
-        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);
-        list.add(videoOptionModel);
-        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-all-videos", 1);
-        list.add(videoOptionModel);
-        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 1);
-        list.add(videoOptionModel);
-        GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
-        GSYVideoType.enableMediaCodecTexture();
-        list.add(videoOptionModel);
-        CustomManager.getCustomManager(MultiSampleVideo.TAG).setOptionModelList(list);
-//        CustomManager.getCustomManager(EmptyControlVideo.TAG).setOptionModelList(list);
-    }
 
     public String getSecondaryStoragePath() {
         try {
@@ -318,7 +320,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent: " + intent.getData());
-        initDate();
+//        initDate();
+        try {
+            initXmlData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void exitApp(View view) {
@@ -342,6 +349,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             if (storagePassword.equals(password)) {
 //                                imageBanner.stopPlay();
 //                                mixBanner2.stopPlay();
+
+                                videoBanner.releasePlayer();
                                 MainActivity.this.finish();
                             } else {
                                 Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
@@ -360,23 +369,33 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             final AlertDialog.Builder newpasswordDialog =
                     new AlertDialog.Builder(MainActivity.this);
             newpasswordDialog.setTitle("请输入新的密码");
+            LinearLayout passwordLayout = new LinearLayout(MainActivity.this);
             final EditText editPassword = new EditText(MainActivity.this);
-            newpasswordDialog.setView(editPassword);
+            editPassword.setHint("输入密码");
+            editPassword.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+            editPassword.setHintTextColor(getResources().getColor(R.color.gray));
+            final EditText editPassword1 = new EditText(MainActivity.this);
+            editPassword1.setHint("请再次输入密码");
+            editPassword1.setHintTextColor(getResources().getColor(R.color.gray));
+            editPassword1.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+            passwordLayout.setOrientation(LinearLayout.VERTICAL);
+            passwordLayout.addView(editPassword);
+            passwordLayout.addView(editPassword1);
+            newpasswordDialog.setView(passwordLayout);
 
             newpasswordDialog.setPositiveButton("确定",
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             String password = editPassword.getText().toString();
+                            String password1 = editPassword1.getText().toString();
                             String regExp = "^[\\w_]{6,20}$";
-                            if (password.matches(regExp)) {
+                            if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
                                 editor.putString("password", password);
                                 editor.commit();
                             } else {
-                                Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字，或者两次密码输入不一致", Toast.LENGTH_SHORT).show();
                             }
-
-
                         }
                     });
             newpasswordDialog.setNegativeButton("关闭",
@@ -459,12 +478,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
 
 //        imageBanner.setVisibility(View.GONE);
-        if(banners != null&& mixBanner2!=null){
-            for(Banner b:banners){
+        if (banners != null && videoBanner != null) {
+            for (Banner b : banners) {
                 b.setVisibility(View.GONE);
             }
-            mixBanner2.setVisibility(View.GONE);
-            mixBanner2.setVisibility(View.GONE);
+            videoBanner.setVisibility(View.GONE);
+            videoBanner.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
         }
 //        banner.stopPlay();
