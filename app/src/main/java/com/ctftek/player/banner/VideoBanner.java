@@ -1,9 +1,14 @@
 package com.ctftek.player.banner;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Outline;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -80,6 +85,7 @@ public class VideoBanner extends LinearLayout {
         videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 1);
         list.add(videoOptionModel);
         GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
+        GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
         GSYVideoType.enableMediaCodecTexture();
         list.add(videoOptionModel);
         CustomManager.getCustomManager(MultiSampleVideo.TAG).setOptionModelList(list);
@@ -144,4 +150,16 @@ public class VideoBanner extends LinearLayout {
         }
     }
 
+    @Override
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
+        setClipToOutline(true);
+        setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(0, 0, 975, 669, 20);
+            }
+        });
+    }
 }

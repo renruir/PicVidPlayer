@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:customAttr="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gray"
+    android:id="@+id/parentView"
     tools:context=".MainActivity">
-
-<!--    <com.ctftek.player.banner.Banner-->
-<!--        android:id="@+id/banner"-->
-<!--        android:background="@color/white"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent" >-->
-<!--    </com.ctftek.player.banner.Banner>-->
 
     <TextView
         android:id="@+id/msg_text"
@@ -41,4 +35,20 @@
         android:onClick="exitApp"
         android:layout_width="90dp"
         android:layout_height="60dp" />
+
+    <com.ctftek.player.ui.ScrollTextView
+        android:id="@+id/scroll_news"
+        android:layout_width="1867px"
+        android:layout_height="126px"
+        android:layout_marginTop="80px"
+        android:layout_alignParentRight="true"
+        android:background="#0000"
+        android:singleLine="true"
+        customAttr:isHorizontal="true"
+        customAttr:isScrollForever="true"
+        customAttr:speed="4"
+        customAttr:text=""
+        customAttr:text_color="#000"
+        customAttr:text_size="40sp"
+        customAttr:times="567" />
 </FrameLayout>

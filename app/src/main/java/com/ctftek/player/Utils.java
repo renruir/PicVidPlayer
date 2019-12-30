@@ -10,9 +10,17 @@ import android.widget.Toast;
 
 import androidx.annotation.UiThread;
 
+import com.alibaba.fastjson.JSON;
+import com.ctftek.player.bean.ScrolltextBean;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -318,5 +326,33 @@ public class Utils {
             stringBuilder.append(hv);
         }
         return stringBuilder.toString();
+    }
+
+    public static ScrolltextBean readScrollTextJson(String filePath) {
+        String scrollTextJson = null;
+        ScrolltextBean scrolltextBean = null;
+        InputStreamReader inputStreamReader;
+        try {
+            InputStream inputStream = new FileInputStream(filePath);
+            inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
+            BufferedReader bufferedReader = new BufferedReader(
+                    inputStreamReader);
+            String line;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            inputStreamReader.close();
+            bufferedReader.close();
+            scrollTextJson = stringBuilder.toString();
+            Log.i(TAG, stringBuilder.toString());
+            scrolltextBean = JSON.parseObject(scrollTextJson, ScrolltextBean.class);
+            Log.d(TAG, "readScrollText: " + scrolltextBean.getText());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return scrolltextBean;
     }
 }

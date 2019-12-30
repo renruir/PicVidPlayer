@@ -33,6 +33,7 @@ public class ParseXml {
 
     private int videoRec[] = new int[4];
     private int imageDelay = 8;
+    private String backgroundPath;
 
     private String filePath = Utils.filePath;
 
@@ -83,6 +84,9 @@ public class ParseXml {
                     } else if (name.equals("LIST")) {
                         Element ele = (Element) node;
                         images = getImageNames(ele);
+                    } else if (name.equals("BACKGROUND")) {
+                        Log.d(TAG, "BACKGROUND: " + node.getTextContent());
+                        backgroundPath = node.getTextContent();
                     } else {
                         Log.d(TAG, "parseXml: " + sb.length);
                         if (sb != null) {
@@ -189,6 +193,10 @@ public class ParseXml {
 
     public List<VideoInfo> getVideoInfoList() {
         return videoInfoList;
+    }
+
+    public String getBackgroundImage(){
+        return backgroundPath;
     }
 
 

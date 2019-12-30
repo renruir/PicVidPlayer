@@ -3,6 +3,7 @@ package com.ctftek.player;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.animation.LayoutTransition;
@@ -15,6 +16,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -33,17 +37,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.ctftek.player.banner.MixBanner;
 import com.ctftek.player.banner.VideoBanner;
+import com.ctftek.player.bean.ScrolltextBean;
 import com.ctftek.player.sax.ParseXml;
-import com.ctftek.player.video.CustomManager;
-import com.ctftek.player.video.MultiSampleVideo;
-import com.shuyu.gsyvideoplayer.cache.CacheFactory;
-import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
-import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
-import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
-import com.shuyu.gsyvideoplayer.player.PlayerFactory;
-import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
+import com.ctftek.player.ui.ScrollTextView;
 import com.xdandroid.hellodaemon.DaemonEnv;
 import com.youth.banner.Banner;
 import com.youth.banner.BannerConfig;
@@ -51,11 +51,14 @@ import com.youth.banner.Transformer;
 import com.youth.banner.loader.ImageLoader;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private static final String TAG = MainActivity.class.getName();
@@ -68,11 +71,13 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     //view
 //    private MixBanner mixBanner1;
 //    private MixBanner mixBanner2;
+    private FrameLayout parentView;
     private VideoBanner videoBanner;
     private TextView mText;
     private ImageView exitArea;
     private ImageView inputArea;
     private List<Banner> banners = new ArrayList<>();
+    private ScrollTextView marqueeView;
 
     private ViewGroup mRootView;
 
@@ -100,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(!initLegalDevice()){
+        if (!initLegalDevice()) {
             finish();
             Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
             return;
@@ -124,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 //        initPlayer();
         getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
@@ -139,11 +145,20 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     }
 
     private void initView() {
+        parentView = findViewById(R.id.parentView);
         mRootView = findViewById(android.R.id.content);
         mText = (TextView) findViewById(R.id.msg_text);
 //        banner = (Banner) findViewById(R.id.banner);
         exitArea = (ImageView) findViewById(R.id.exit_area);
         inputArea = (ImageView) findViewById(R.id.input_password);
+        marqueeView = (ScrollTextView) findViewById(R.id.scroll_news);
+//        String m1 = "心中有阳光，脚底有力量！";
+//        List<String> messages = new ArrayList<>();
+//        messages.add(m1);
+//        messages.add(m1);
+//        messages.add(m1);
+//        marqueeView.setText(m1);
+
 //        mixBanner1 = new MixBanner(this);
 
 //        imageBanner = new Banner(this);
@@ -158,12 +173,31 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 //        imageBanner.setY(0);
     }
 
+    private void initScrollText() {
+        try {
+            String scrollTextPath = Utils.filePath + "/ROLLTXT.txt";
+            if (!new File(scrollTextPath).exists()) {
+                return;
+            }
+            ScrolltextBean scrolltextBean = Utils.readScrollTextJson(scrollTextPath);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(scrolltextBean.getW(), scrolltextBean.getH());
+            marqueeView.setLayoutParams(params);
+            marqueeView.setX(scrolltextBean.getX());
+            marqueeView.setY(scrolltextBean.getY());
+            marqueeView.setText(scrolltextBean);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void initFile() {
         Utils.isExist(Utils.filePath);
     }
 
     private void initXmlData() throws Exception {
-        String xmlPath = Utils.filePath + "/playerlist.xml";
+        initScrollText();
+        String xmlPath = Utils.filePath + "/ADCFG.txt";
         if (!new File(xmlPath).exists()) {
             return;
         }
@@ -242,8 +276,19 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 b.setVisibility(View.VISIBLE);
             }
             videoBanner.setVisibility(View.VISIBLE);
+            marqueeView.setVisibility(View.VISIBLE);
             mText.setVisibility(View.GONE);
         }
+
+        Drawable drawable = null;
+        try {
+            String path = Utils.filePath + "/" + parseXml.getBackgroundImage();
+            Log.d(TAG, "path: " + path);
+            drawable = Drawable.createFromStream(new FileInputStream(path), parseXml.getBackgroundImage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        parentView.setBackground(drawable);
     }
 
     private void initDate() {
@@ -284,7 +329,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private class MyLoader extends ImageLoader {
         @Override
         public void displayImage(Context context, Object path, ImageView imageView) {
-            Glide.with(context).asBitmap().load(new File((String) path)).into(imageView);
+            Glide.with(context)
+//                    .asBitmap()
+                    .load(new File((String) path))
+                    .transforms(new CenterCrop(), new RoundedCorners(20))
+                    .into(imageView);
         }
     }
 
@@ -430,6 +479,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     @Override
     public void updateMediaFile(String storagePath) {
         Log.d(TAG, "updateMediaFile:00000000000 ");
+        marqueeView.setVisibility(View.GONE);
+        parentView.setBackgroundResource(0);
         try {
             CopyPasteUtil.build()
                     .setIsNeesDefaulProgressDialog(true)
