@@ -55,7 +55,7 @@ public class EmptyControlVideo extends StandardGSYVideoPlayer {
 
     @Override
     public GSYVideoViewBridge getGSYVideoManager() {
-        Log.d(TAG, "getGSYVideoManager: " + getKey());
+//        Log.d(TAG, "getGSYVideoManager: " + getKey());
         CustomManager.getCustomManager(getKey()).initContext(getContext().getApplicationContext());
         return CustomManager.getCustomManager(getKey());
     }

@@ -8,11 +8,18 @@
     android:id="@+id/parentView"
     tools:context=".MainActivity">
 
+    <RelativeLayout
+        android:id="@+id/mainView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
     <TextView
         android:id="@+id/msg_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_gravity="center"
+        android:layout_marginBottom="205dp"
         android:gravity="center"
         android:text="文件夹为空，请把播放文件放入U盘或者TF中mediaResource文件夹（如没有，请自行创建）中，再插入设备！"
         android:textColor="#E91E63"
@@ -24,8 +31,10 @@
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
         android:onClick="exitApp"
-        android:layout_width="100dp"
-        android:layout_height="100dp" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_width="150dp"
+        android:layout_height="150dp" />
 
     <ImageView
         android:id="@+id/exit_area"
@@ -33,9 +42,10 @@
         android:layout_marginBottom="20dp"
         android:layout_marginRight="20dp"
         android:onClick="exitApp"
-        android:background="#333"
-        android:layout_width="100dp"
-        android:layout_height="100dp" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_width="150dp"
+        android:layout_height="150dp" />
 
 <!--    <com.ctftek.player.ui.ScrollTextView-->
 <!--        android:id="@+id/scroll_news"-->

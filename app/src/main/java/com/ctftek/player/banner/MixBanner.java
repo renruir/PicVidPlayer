@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -21,8 +22,14 @@ import com.ctftek.player.Utils;
 import com.ctftek.player.ui.GalleryTransformer;
 import com.ctftek.player.video.CustomManager;
 //import com.ctftek.player.video.EmptyControlVideo;
-import com.ctftek.player.video.MultiSampleVideo;
+import com.ctftek.player.video.EmptyControlVideo;
+import com.shuyu.gsyvideoplayer.cache.CacheFactory;
+import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
+import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
+import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
+import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 import java.io.File;
@@ -30,11 +37,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+
 /**
  * Created by steven on 2018/5/14.
  */
 
-public class MixBanner extends RelativeLayout {
+public class MixBanner extends RelativeLayout implements View.OnTouchListener {
 
     private static final String TAG = MixBanner.class.getName();
     private ViewPager viewPager;
@@ -78,6 +87,31 @@ public class MixBanner extends RelativeLayout {
         init();
     }
 
+    private void initPlayer() {
+//        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+//        PlayerFactory.setPlayManager(SystemPlayerManager.class);
+        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+        CacheFactory.setCacheManager(ProxyCacheManager.class);
+        IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
+//        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+        List<VideoOptionModel> list = new ArrayList<>();
+
+        VideoOptionModel videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-all-videos", 1);
+        list.add(videoOptionModel);
+        videoOptionModel = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 1);
+        list.add(videoOptionModel);
+        GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
+        GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
+        GSYVideoType.enableMediaCodecTexture();
+        list.add(videoOptionModel);
+        CustomManager.getCustomManager(EmptyControlVideo.TAG).setOptionModelList(list);
+//        CustomManager.getCustomManager(EmptyControlVideo.TAG).setOptionModelList(list);
+    }
+
     private void init() {
         time = new Time();
         viewPager = new ViewPager(getContext());
@@ -89,7 +123,7 @@ public class MixBanner extends RelativeLayout {
 //                Log.d(TAG,"page："+page+"，position："+position);
             }
         });
-        this.addView(viewPager);
+        this.addView(viewPager, -1);
     }
 
     public void setDataList(List<String> dataList) {
@@ -123,7 +157,8 @@ public class MixBanner extends RelativeLayout {
                     if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
                             Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
                             Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv") ) {
-                        final MultiSampleVideo videoPlayer = new MultiSampleVideo(getContext());
+                        final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                        initPlayer();
                         Log.d(TAG, "setDataList: " + videoPlayer.getGSYVideoManager().getClass().getName());
                         videoPlayer.setPlayTag(TAG);
                         videoPlayer.setPlayPosition(i);
@@ -132,9 +167,7 @@ public class MixBanner extends RelativeLayout {
                         videoPlayer.setReleaseWhenLossAudio(false);
                         videoPlayer.setShowFullAnimation(true);
                         videoPlayer.setIsTouchWiget(false);
-
                         videoPlayer.setNeedLockFull(true);
-
                         videoPlayer.setLayoutParams(lp);
                         videoPlayer.setUp(url, true, "");
                         videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
@@ -145,7 +178,7 @@ public class MixBanner extends RelativeLayout {
                                 videoPlayer.release();
                                 viewPager.setCurrentItem(autoCurrIndex + 1);
                                 mHandler.removeCallbacks(runnable);
-                                mHandler.postDelayed(runnable, 100);
+                                mHandler.postDelayed(runnable, 50);
                             }
                         });
                         views.add(videoPlayer);
@@ -153,7 +186,7 @@ public class MixBanner extends RelativeLayout {
                         ImageView imageView = new ImageView(getContext());
                         imageView.setLayoutParams(lp);
                         imageView.setBackgroundColor(Color.BLACK);
-                        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                         Glide.with(getContext()).load(new File(url)).apply(options).into(imageView);
                         views.add(imageView);
                     }
@@ -164,8 +197,18 @@ public class MixBanner extends RelativeLayout {
                 if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
                         Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
                         Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv")) {
-                    final MultiSampleVideo videoPlayer = new MultiSampleVideo(getContext());
-
+                    final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
+                    initPlayer();
+                    videoPlayer.setPlayTag(TAG);
+                    videoPlayer.setPlayPosition(0);
+                    videoPlayer.setRotateViewAuto(true);
+                    videoPlayer.setLockLand(true);
+                    videoPlayer.setReleaseWhenLossAudio(false);
+                    videoPlayer.setShowFullAnimation(true);
+                    videoPlayer.setIsTouchWiget(false);
+                    videoPlayer.setNeedLockFull(true);
+                    videoPlayer.setLayoutParams(lp);
+                    videoPlayer.setUp(url, true, "");
                     videoPlayer.setLayoutParams(lp);
                     videoPlayer.setUp(url, true, "");
                     videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
@@ -187,7 +230,6 @@ public class MixBanner extends RelativeLayout {
                     videoPlayer.setUpLazy(url, false, null, null, "这是title");
                     videoPlayer.startPlayLogic();
                     views.add(videoPlayer);
-
                 } else {
                     ImageView imageView = new ImageView(getContext());
                     imageView.setLayoutParams(lp);
@@ -230,10 +272,8 @@ public class MixBanner extends RelativeLayout {
             @Override
             public void onPageScrollStateChanged(int state) {
                 Log.d(TAG, "1111:" + state);
-
                 //移除自动计时
                 mHandler.removeCallbacks(runnable);
-
                 //ViewPager跳转
                 int pageIndex = autoCurrIndex;
                 if (autoCurrIndex == 0) {
@@ -250,34 +290,13 @@ public class MixBanner extends RelativeLayout {
                 if (state == 0 && isAutoPlay && views.size() > 1) {
                     View view1 = views.get(pageIndex);
                     if (view1 instanceof StandardGSYVideoPlayer) {
-                        final MultiSampleVideo videoView = (MultiSampleVideo) view1;
-//                        int current = videoView.getPlayPosition();
-//                        PlayerFactory.setPlayManager(SystemPlayerManager.class);//系统模式
+                        final EmptyControlVideo videoView = (EmptyControlVideo) view1;
                         videoView.setVideoAllCallBack(new GSYSampleCallBack() {
-
-                            @Override
-                            public void onPrepared(String url, Object... objects) {
-                                int current = videoView.getPlayPosition();
-                                int duration = videoView.getDuration();
-                                delyedTime = duration - current;
-                                Log.d(TAG, "duration: " + duration);
-                                Log.d(TAG, "current: " + current);
-                                //某些时候，某些视频，获取的时间无效，就延时10秒，重新获取
-                                if (delyedTime <= 0) {
-                                    time.getDelyedTime(videoView, runnable);
-                                    mHandler.postDelayed(time, imgDelyed);
-                                } else {
-                                    mHandler.postDelayed(runnable, delyedTime);
-                                }
-                            }
-
                             @Override
                             public void onAutoComplete(String url, Object... objects) {
                                 Log.d(TAG, "AutoComplete: " + url);
-//                                String text = null;
-//                                text.substring(1);
                                 videoView.release();
-                                viewPager.setCurrentItem(autoCurrIndex + 1);
+                                mHandler.postDelayed(runnable, 50);
                             }
 
                             @Override
@@ -322,6 +341,12 @@ public class MixBanner extends RelativeLayout {
             mHandler.sendEmptyMessage(UPTATE_VIEWPAGER);
         }
     };
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        Log.d(TAG, "onTouch: 2222");
+        return true;
+    }
 
     /**
      * 这个类获取视频长度，以及已经播放的时间
@@ -376,7 +401,7 @@ public class MixBanner extends RelativeLayout {
                     int po = customManager.getPlayPosition();
                     //对应的播放列表TAG
                     Log.d(TAG, "PlayTag: " + customManager.getPlayTag());
-                    if (customManager.getPlayTag().equals(MultiSampleVideo.TAG)) {
+                    if (customManager.getPlayTag().equals(EmptyControlVideo.TAG)) {
                         CustomManager.releaseAllVideos(customManagerEntry.getKey());
                         removeKey.add(customManagerEntry.getKey());
                     }

@@ -37,6 +37,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private MixBanner mixBanner;
     //    private MixBanner mixBanner2;
     private FrameLayout parentView;
+    private RelativeLayout mainView;
     private VideoBanner videoBanner;
     private TextView mText;
     private ImageView exitArea;
@@ -120,18 +122,15 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (!initLegalDevice()) {
-            finish();
-            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-            return;
-        }
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-
+//        if (!initLegalDevice()) {
+//            finish();
+//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
         setContentView(R.layout.activity_main);
-        TraceServiceImpl.sShouldStopService = false;
-        DaemonEnv.startServiceMayBind(TraceServiceImpl.class);
 
 //        Intent i = new Intent(this, TestActivity.class);
 //        startActivity(i);
@@ -172,6 +171,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initView() {
         parentView = findViewById(R.id.parentView);
+        mainView = findViewById(R.id.mainView);
         mRootView = findViewById(android.R.id.content);
         mText = (TextView) findViewById(R.id.msg_text);
         exitArea = (ImageView) findViewById(R.id.exit_area);
@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void initScrollText() {
         marqueeView = new ScrollTextView(this);
-        mRootView.addView(marqueeView, -1);
+        mainView.addView(marqueeView, -1);
         marqueeView.setHorizontal(true);
         marqueeView.setScrollForever(true);
         marqueeView.setOnTouchListener(new View.OnTouchListener() {
@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         videoBanner = new VideoBanner(this);
 //        mixBanner2 = new MixBanner(this);
-        mRootView.addView(videoBanner, -1);
+        mainView.addView(videoBanner, -1);
 //        mRootView.addView(mixBanner2);
         FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         for (List<ParseXml.ImageInfo> infosList : imageInfoList) {
             for (ParseXml.ImageInfo info : infosList) {
                 Banner imageBanner = new Banner(this);
-                mRootView.addView(imageBanner, -1);
+                mainView.addView(imageBanner, -1);
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                 params.width = info.getRect()[2];
@@ -319,7 +319,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         mixBanner = new MixBanner(this);
 //        mRootView.removeAllViews();
 //        mRootView.addView(marqueeView);
-        mRootView.addView(mixBanner, -1);
+        mainView.addView(mixBanner, -1);
+        exitArea.bringToFront();
         if (files.length != 0) {
             if (videoBanner != null && videoBanner.getVisibility() == View.VISIBLE) {
                 videoBanner.setVisibility(View.GONE);
@@ -416,7 +417,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     public void exitApp(View view) {
 //        onClick(view);
-        Log.d(TAG, "exitApp: 1111");
+        Log.d(TAG, "exitApp: "+view.getId());
+        Log.d(TAG, "exitApp: "+R.id.input_password);
         SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         if (view.getId() == R.id.exit_area) {
@@ -458,6 +460,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             }
 
         } else if (view.getId() == R.id.input_password) {
+            System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
+            mHits[mHits.length - 1] = SystemClock.uptimeMillis();
             if (mHits[0] >= (SystemClock.uptimeMillis() - DURATION)) {
                 final AlertDialog.Builder newpasswordDialog =
                         new AlertDialog.Builder(MainActivity.this);
