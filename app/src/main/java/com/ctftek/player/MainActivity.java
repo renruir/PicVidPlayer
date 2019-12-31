@@ -1,6 +1,7 @@
 package com.ctftek.player;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -19,14 +20,17 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.SystemClock;
 import android.os.storage.StorageManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -69,8 +73,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     //view
-//    private MixBanner mixBanner1;
-//    private MixBanner mixBanner2;
+    private MixBanner mixBanner;
+    //    private MixBanner mixBanner2;
     private FrameLayout parentView;
     private VideoBanner videoBanner;
     private TextView mText;
@@ -78,30 +82,41 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private ImageView inputArea;
     private List<Banner> banners = new ArrayList<>();
     private ScrollTextView marqueeView;
-
     private ViewGroup mRootView;
+    private String xmlPath;
 
     private StorageService.StorageServiceBinder serviceBinder;
 
     //data
+    final static int COUNTS = 5;//点击次数
+    final static long DURATION = 3 * 1000;//规定有效时间
+    long[] mHits = new long[COUNTS];
+
     private List<String> fileList;
     private List<ParseXml.VideoInfo> videoInfoList;
     private List<String> videoFilelist = new ArrayList<>();
     private List<List<ParseXml.ImageInfo>> imageInfoList;
     private Handler mHandler = new Handler() {
+        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
             Log.d(TAG, "handleMessage: from dialog");
-//            initDate();
-            try {
-                initXmlData();
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (iSplit()) {
+                try {
+                    initXmlData();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                initDate();
             }
+
+
         }
     };
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,16 +138,27 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         initView();
         initFile();
-//        initDate();
-        try {
-            initXmlData();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (iSplit()) {
+            try {
+                initXmlData();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            initDate();
         }
 
-//        initPlayer();
         getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
+    }
+
+    private boolean iSplit() {
+        xmlPath = Utils.filePath + "/ADCFG.txt";
+        if (new File(xmlPath).exists()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean initLegalDevice() {
@@ -148,32 +174,24 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         parentView = findViewById(R.id.parentView);
         mRootView = findViewById(android.R.id.content);
         mText = (TextView) findViewById(R.id.msg_text);
-//        banner = (Banner) findViewById(R.id.banner);
         exitArea = (ImageView) findViewById(R.id.exit_area);
         inputArea = (ImageView) findViewById(R.id.input_password);
-        marqueeView = (ScrollTextView) findViewById(R.id.scroll_news);
-//        String m1 = "心中有阳光，脚底有力量！";
-//        List<String> messages = new ArrayList<>();
-//        messages.add(m1);
-//        messages.add(m1);
-//        messages.add(m1);
-//        marqueeView.setText(m1);
-
-//        mixBanner1 = new MixBanner(this);
-
-//        imageBanner = new Banner(this);
-//        mRootView.addView(imageBanner);
-//
-//        FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
-//                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-//        params1.width = 960;
-//        params1.height = 1080;
-//        imageBanner.setLayoutParams(params1);
-//        imageBanner.setX(0);
-//        imageBanner.setY(0);
+        exitArea.setZ(2);
+        inputArea.setZ(2);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void initScrollText() {
+        marqueeView = new ScrollTextView(this);
+        mRootView.addView(marqueeView, -1);
+        marqueeView.setHorizontal(true);
+        marqueeView.setScrollForever(true);
+        marqueeView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        });
         try {
             String scrollTextPath = Utils.filePath + "/ROLLTXT.txt";
             if (!new File(scrollTextPath).exists()) {
@@ -184,6 +202,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             marqueeView.setLayoutParams(params);
             marqueeView.setX(scrolltextBean.getX());
             marqueeView.setY(scrolltextBean.getY());
+            Log.d(TAG, "initScrollText: x=" + scrolltextBean.getX() + ",y=" + scrolltextBean.getY());
             marqueeView.setText(scrolltextBean);
         } catch (Exception e) {
             e.printStackTrace();
@@ -195,12 +214,10 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         Utils.isExist(Utils.filePath);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void initXmlData() throws Exception {
         initScrollText();
-        String xmlPath = Utils.filePath + "/ADCFG.txt";
-        if (!new File(xmlPath).exists()) {
-            return;
-        }
+
         ParseXml parseXml = new ParseXml();
         parseXml.parseXml(xmlPath);
         videoInfoList = parseXml.getVideoInfoList();
@@ -208,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         videoBanner = new VideoBanner(this);
 //        mixBanner2 = new MixBanner(this);
-        mRootView.addView(videoBanner);
+        mRootView.addView(videoBanner, -1);
 //        mRootView.addView(mixBanner2);
         FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
@@ -225,17 +242,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         for (ParseXml.VideoInfo info : videoInfoList) {
             videoFilelist.add(info.getName());
         }
-//        mixBanner2.setDataList(videoFilelist);
-//        mixBanner2.setImgDelyed(2000);
-//        mixBanner2.startBanner();
-//        mixBanner2.update();
-//        mixBanner2.startAutoPlay();
         videoBanner.setVideoList(videoFilelist);
 
         for (List<ParseXml.ImageInfo> infosList : imageInfoList) {
             for (ParseXml.ImageInfo info : infosList) {
                 Banner imageBanner = new Banner(this);
-                mRootView.addView(imageBanner);
+                mRootView.addView(imageBanner, -1);
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                 params.width = info.getRect()[2];
@@ -260,6 +272,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 imageBanner.isAutoPlay(true);
                 imageBanner.setIndicatorGravity(BannerConfig.CENTER);
                 imageBanner.start();
+                imageBanner.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+                        return true;
+                    }
+                });
                 banners.add(imageBanner);
             }
         }
@@ -291,14 +309,22 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         parentView.setBackground(drawable);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void initDate() {
         fileList = new ArrayList<>();
         File file = new File(Utils.filePath);
         File[] files = file.listFiles();
+        initScrollText();
         Log.d(TAG, "initDate: " + files.length);
+        mixBanner = new MixBanner(this);
+//        mRootView.removeAllViews();
+//        mRootView.addView(marqueeView);
+        mRootView.addView(mixBanner, -1);
         if (files.length != 0) {
+            if (videoBanner != null && videoBanner.getVisibility() == View.VISIBLE) {
+                videoBanner.setVisibility(View.GONE);
+            }
 //            imageBanner.setVisibility(View.VISIBLE);
-            videoBanner.setVisibility(View.VISIBLE);
             mText.setVisibility(View.GONE);
             for (int i = 0; i < files.length; i++) {
                 Log.d(TAG, "data: " + files[i].getAbsolutePath());
@@ -310,11 +336,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 }
             }
             try {
-//                mixBanner2.setDataList(fileList);
-//                mixBanner2.setImgDelyed(2000);
-//                mixBanner2.startBanner();
-//                mixBanner2.update();
-//                mixBanner2.startAutoPlay();
+                mixBanner.setDataList(fileList);
+                mixBanner.setImgDelyed(2000);
+                mixBanner.startBanner();
+                mixBanner.update();
+                mixBanner.startAutoPlay();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -365,6 +391,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -377,86 +404,103 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
     }
 
+    public void onClick(View view) {
+        SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
+        mHits[mHits.length - 1] = SystemClock.uptimeMillis();
+        if (mHits[0] >= (SystemClock.uptimeMillis() - DURATION)) {
+
+        }
+    }
+
     public void exitApp(View view) {
+//        onClick(view);
         Log.d(TAG, "exitApp: 1111");
         SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         if (view.getId() == R.id.exit_area) {
-            final AlertDialog.Builder exitDialog =
-                    new AlertDialog.Builder(MainActivity.this);
-            exitDialog.setTitle("请输入密码退出应用");
-            final EditText editPassword = new EditText(MainActivity.this);
-            editPassword.setInputType(129);
-            exitDialog.setView(editPassword);
+            System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
+            mHits[mHits.length - 1] = SystemClock.uptimeMillis();
+            if (mHits[0] >= (SystemClock.uptimeMillis() - DURATION)) {
+                final AlertDialog.Builder exitDialog =
+                        new AlertDialog.Builder(MainActivity.this);
+                exitDialog.setTitle("请输入密码退出应用");
+                final EditText editPassword = new EditText(MainActivity.this);
+                editPassword.setInputType(129);
+                exitDialog.setView(editPassword);
 
-            exitDialog.setPositiveButton("确定",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String password = editPassword.getText().toString();
-                            String storagePassword = sharedPreferences.getString("password", "123456");
-                            if (storagePassword.equals(password)) {
+                exitDialog.setPositiveButton("确定",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String password = editPassword.getText().toString();
+                                String storagePassword = sharedPreferences.getString("password", "123456");
+                                if (storagePassword.equals(password)) {
 //                                imageBanner.stopPlay();
-//                                mixBanner2.stopPlay();
+                                    mixBanner.stopPlay();
 
-                                videoBanner.releasePlayer();
-                                MainActivity.this.finish();
-                            } else {
-                                Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
+                                    videoBanner.releasePlayer();
+                                    MainActivity.this.finish();
+                                } else {
+                                    Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        }
-                    });
-            exitDialog.setNegativeButton("关闭",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            exitDialog.show();
+                        });
+                exitDialog.setNegativeButton("关闭",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                exitDialog.show();
+            }
+
         } else if (view.getId() == R.id.input_password) {
-            final AlertDialog.Builder newpasswordDialog =
-                    new AlertDialog.Builder(MainActivity.this);
-            newpasswordDialog.setTitle("请输入新的密码");
-            LinearLayout passwordLayout = new LinearLayout(MainActivity.this);
-            final EditText editPassword = new EditText(MainActivity.this);
-            editPassword.setHint("输入密码");
-            editPassword.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-            editPassword.setHintTextColor(getResources().getColor(R.color.gray));
-            final EditText editPassword1 = new EditText(MainActivity.this);
-            editPassword1.setHint("请再次输入密码");
-            editPassword1.setHintTextColor(getResources().getColor(R.color.gray));
-            editPassword1.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-            passwordLayout.setOrientation(LinearLayout.VERTICAL);
-            passwordLayout.addView(editPassword);
-            passwordLayout.addView(editPassword1);
-            newpasswordDialog.setView(passwordLayout);
+            if (mHits[0] >= (SystemClock.uptimeMillis() - DURATION)) {
+                final AlertDialog.Builder newpasswordDialog =
+                        new AlertDialog.Builder(MainActivity.this);
+                newpasswordDialog.setTitle("请输入新的密码");
+                LinearLayout passwordLayout = new LinearLayout(MainActivity.this);
+                final EditText editPassword = new EditText(MainActivity.this);
+                editPassword.setHint("输入密码");
+                editPassword.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+                editPassword.setHintTextColor(getResources().getColor(R.color.gray));
+                final EditText editPassword1 = new EditText(MainActivity.this);
+                editPassword1.setHint("请再次输入密码");
+                editPassword1.setHintTextColor(getResources().getColor(R.color.gray));
+                editPassword1.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+                passwordLayout.setOrientation(LinearLayout.VERTICAL);
+                passwordLayout.addView(editPassword);
+                passwordLayout.addView(editPassword1);
+                newpasswordDialog.setView(passwordLayout);
 
-            newpasswordDialog.setPositiveButton("确定",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String password = editPassword.getText().toString();
-                            String password1 = editPassword1.getText().toString();
-                            String regExp = "^[\\w_]{6,20}$";
-                            if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
-                                editor.putString("password", password);
-                                editor.commit();
-                            } else {
-                                Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字，或者两次密码输入不一致", Toast.LENGTH_SHORT).show();
+                newpasswordDialog.setPositiveButton("确定",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String password = editPassword.getText().toString();
+                                String password1 = editPassword1.getText().toString();
+                                String regExp = "^[\\w_]{6,20}$";
+                                if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
+                                    editor.putString("password", password);
+                                    editor.commit();
+                                } else {
+                                    Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字，或者两次密码输入不一致", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        }
-                    });
-            newpasswordDialog.setNegativeButton("关闭",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            newpasswordDialog.show();
+                        });
+                newpasswordDialog.setNegativeButton("关闭",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                newpasswordDialog.show();
+            }
         }
-
     }
 
 
@@ -479,6 +523,19 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     @Override
     public void updateMediaFile(String storagePath) {
         Log.d(TAG, "updateMediaFile:00000000000 ");
+        if (banners != null && videoBanner != null) {
+            for (Banner b : banners) {
+                b.setVisibility(View.GONE);
+            }
+            videoBanner.setVisibility(View.GONE);
+            videoBanner.releasePlayer();
+            mText.setVisibility(View.VISIBLE);
+        }
+        if (mixBanner != null) {
+            mixBanner.setVisibility(View.GONE);
+            mixBanner.stopPlay();
+            mixBanner.destroy();
+        }
         marqueeView.setVisibility(View.GONE);
         parentView.setBackgroundResource(0);
         try {
@@ -529,16 +586,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
 
 //        imageBanner.setVisibility(View.GONE);
-        if (banners != null && videoBanner != null) {
-            for (Banner b : banners) {
-                b.setVisibility(View.GONE);
-            }
-            videoBanner.setVisibility(View.GONE);
-            videoBanner.setVisibility(View.GONE);
-            mText.setVisibility(View.VISIBLE);
-        }
-//        banner.stopPlay();
-//        banner.destroy();
     }
 
     @Override

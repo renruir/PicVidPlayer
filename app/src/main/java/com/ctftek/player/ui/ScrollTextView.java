@@ -66,8 +66,10 @@ public class ScrollTextView extends SurfaceView implements SurfaceHolder.Callbac
 
     private int textColor = Color.WHITE;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public ScrollTextView(Context context) {
-        super(context);
+//        super(context);
+        this(context,null);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

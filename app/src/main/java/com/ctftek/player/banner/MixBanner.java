@@ -423,7 +423,7 @@ public class MixBanner extends RelativeLayout {
 
     public void stopPlay(){
         this.setVisibility(GONE);
-        if(views.size() != 0){
+        if(views!= null && views.size() != 0){
             View view1 = views.get(autoCurrIndex);
             Log.d(TAG, "stopPlay: " + autoCurrIndex);
             mHandler.removeCallbacks(runnable);
@@ -441,11 +441,15 @@ public class MixBanner extends RelativeLayout {
     }
 
     public void destroy() {
-        mHandler.removeCallbacksAndMessages(null);
+        if(mHandler != null){
+            mHandler.removeCallbacksAndMessages(null);
+        }
         mHandler = null;
         time = null;
         runnable = null;
-        views.clear();
+        if(views != null){
+            views.clear();
+        }
         views = null;
         viewPager = null;
         mAdapter = null;

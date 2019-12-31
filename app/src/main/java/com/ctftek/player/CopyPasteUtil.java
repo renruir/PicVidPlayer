@@ -84,7 +84,7 @@ public class CopyPasteUtil {
                                 fileChannelOutput.close();
                                 fileChannelInput.close();
                             } catch (IOException e) {
-                                Log.e("CopyPasteUtil", "CopyPasteUtil copyFile error:" + e.getMessage());
+                                Log.e(TAG, "CopyPasteUtil copyFile error:" + e.getMessage());
                             }
                         }
                     });
@@ -135,7 +135,7 @@ public class CopyPasteUtil {
                             progressDialog.dismiss();
                         }
                     } catch (Exception e) {
-                        Log.e("CopyPasteUtil", "CopyPasteUtil copyFile error:" + e.getMessage());
+                        Log.e(TAG, "CopyPasteUtil copyFile error:" + e.getMessage());
                     }
                 }
             };
@@ -175,7 +175,7 @@ public class CopyPasteUtil {
                                     call.onCancle();
                                 }
                             } catch (IOException e) {
-                                Log.e("CopyPasteUtil", "CopyPasteUtil copyDirectiory error:" + e.getMessage());
+                                Log.e(TAG, "CopyPasteUtil copyDirectiory error:" + e.getMessage());
                             }
                         }
                     });
