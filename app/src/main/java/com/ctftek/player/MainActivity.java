@@ -220,18 +220,18 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         ParseXml parseXml = new ParseXml();
         parseXml.parseXml(xmlPath);
-        if(videoFilelist != null && !videoFilelist.isEmpty()){
+        if (videoFilelist != null && !videoFilelist.isEmpty()) {
             videoFilelist.clear();
         }
         videoInfoList = parseXml.getVideoInfoList();
         imageInfoList = parseXml.getImagesInfo();
         Log.d(TAG, "video size: " + videoInfoList.size());
-        for(ParseXml.VideoInfo info : videoInfoList){
+        for (ParseXml.VideoInfo info : videoInfoList) {
             Log.d(TAG, "video name: " + info.getName());
         }
-        
-        for(List<ParseXml.ImageInfo> imageInfo : imageInfoList){
-            for(ParseXml.ImageInfo info: imageInfo){
+
+        for (List<ParseXml.ImageInfo> imageInfo : imageInfoList) {
+            for (ParseXml.ImageInfo info : imageInfo) {
                 Log.d(TAG, "image name: " + info.getNames());
             }
         }
@@ -307,7 +307,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 b.setVisibility(View.VISIBLE);
             }
             videoBanner.setVisibility(View.VISIBLE);
-            marqueeView.setVisibility(View.VISIBLE);
+            if (marqueeView != null) {
+                marqueeView.setVisibility(View.VISIBLE);
+            }
             mText.setVisibility(View.GONE);
         }
 
@@ -361,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         } else {
 //            imageBanner.setVisibility(View.GONE);
-            videoBanner.setVisibility(View.GONE);
+            mixBanner.setVisibility(View.GONE);
             mText.setVisibility(View.VISIBLE);
         }
     }
@@ -430,8 +432,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     public void exitApp(View view) {
 //        onClick(view);
-        Log.d(TAG, "exitApp: "+view.getId());
-        Log.d(TAG, "exitApp: "+R.id.input_password);
+        Log.d(TAG, "exitApp: " + view.getId());
+        Log.d(TAG, "exitApp: " + R.id.input_password);
         SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         if (view.getId() == R.id.exit_area) {
@@ -553,7 +555,10 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             mixBanner.stopPlay();
             mixBanner.destroy();
         }
-        marqueeView.setVisibility(View.GONE);
+        if (marqueeView != null) {
+            marqueeView.setVisibility(View.GONE);
+        }
+
         parentView.setBackgroundResource(0);
         try {
             CopyPasteUtil.build()
