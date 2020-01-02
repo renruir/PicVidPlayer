@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +33,7 @@ public class SplitScreenActivity extends AppCompatActivity {
         mRootView = findViewById(android.R.id.content);
         VideoBanner videoBanner = new VideoBanner(this);
         mRootView.addView(videoBanner);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
         videoBanner.setLayoutParams(lp);
         String url1 = "/mnt/sdcard/mediaResource/1.mp4";
         String url2 = "/mnt/sdcard/mediaResource/2.mp4";

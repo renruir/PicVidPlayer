@@ -93,10 +93,15 @@ public class VideoBanner extends LinearLayout {
     }
 
     public void setVideoList(List<String> data) {
+        Log.d(TAG, "setDataList: " + data.size());
+        currIndex = 0;
+        if (this.videoList.size() != 0) {
+            videoList.clear();
+        }
         this.videoList = data;
+
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 //        final MultiSampleVideo videoPlayer = new MultiSampleVideo(getContext());
-        Log.d(TAG, "setDataList: " + videoPlayer.getGSYVideoManager().getClass().getName());
         videoPlayer.setPlayTag(TAG);
         videoPlayer.setPlayPosition(currIndex);
         videoPlayer.setRotateViewAuto(true);
@@ -120,6 +125,7 @@ public class VideoBanner extends LinearLayout {
             public void onPlayError(String url, Object... objects) {
                 super.onPlayError(url, objects);
                 Log.d(TAG, "onPlayError: " + url);
+                doPlay(videoPlayer, ++currIndex);
             }
 
             @Override
@@ -131,7 +137,7 @@ public class VideoBanner extends LinearLayout {
     }
 
     private void doPlay(MultiSampleVideo vPlay, int index) {
-        Log.d(TAG, "doPlay: 9999999999");
+        Log.d(TAG, "doPlay index :" + index);
         if (index >= videoList.size()) {
             currIndex = 0;
         }
@@ -144,7 +150,7 @@ public class VideoBanner extends LinearLayout {
     }
 
 
-    public void releasePlayer(){
+    public void releasePlayer() {
         if (videoPlayer.isInPlayingState()) {
             videoPlayer.release();
         }

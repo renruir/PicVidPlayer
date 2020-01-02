@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private MixBanner mixBanner;
     //    private MixBanner mixBanner2;
     private FrameLayout parentView;
-    private RelativeLayout mainView;
+    private FrameLayout mainView;
     private VideoBanner videoBanner;
     private TextView mText;
     private ImageView exitArea;
@@ -125,11 +125,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-//        if (!initLegalDevice()) {
-//            finish();
-//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
+        if (!initLegalDevice()) {
+            finish();
+            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+            return;
+        }
         setContentView(R.layout.activity_main);
 
 //        Intent i = new Intent(this, TestActivity.class);
@@ -220,21 +220,34 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         ParseXml parseXml = new ParseXml();
         parseXml.parseXml(xmlPath);
+        if(videoFilelist != null && !videoFilelist.isEmpty()){
+            videoFilelist.clear();
+        }
         videoInfoList = parseXml.getVideoInfoList();
         imageInfoList = parseXml.getImagesInfo();
+        Log.d(TAG, "video size: " + videoInfoList.size());
+        for(ParseXml.VideoInfo info : videoInfoList){
+            Log.d(TAG, "video name: " + info.getName());
+        }
+        
+        for(List<ParseXml.ImageInfo> imageInfo : imageInfoList){
+            for(ParseXml.ImageInfo info: imageInfo){
+                Log.d(TAG, "image name: " + info.getNames());
+            }
+        }
 
         videoBanner = new VideoBanner(this);
 //        mixBanner2 = new MixBanner(this);
-        mainView.addView(videoBanner, -1);
+        mainView.addView(videoBanner);
 //        mRootView.addView(mixBanner2);
         FrameLayout.LayoutParams params1 = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         params1.width = videoInfoList.get(0).getRect()[2];
         params1.height = videoInfoList.get(0).getRect()[3];
-        Log.d(TAG, "w: " + videoInfoList.get(0).getRect()[2]);
-        Log.d(TAG, "h: " + videoInfoList.get(0).getRect()[3]);
-        Log.d(TAG, "x: " + videoInfoList.get(0).getRect()[0]);
-        Log.d(TAG, "y: " + videoInfoList.get(0).getRect()[1]);
+//        Log.d(TAG, "w: " + videoInfoList.get(0).getRect()[2]);
+//        Log.d(TAG, "h: " + videoInfoList.get(0).getRect()[3]);
+//        Log.d(TAG, "x: " + videoInfoList.get(0).getRect()[0]);
+//        Log.d(TAG, "y: " + videoInfoList.get(0).getRect()[1]);
         videoBanner.setLayoutParams(params1);
         videoBanner.setX(videoInfoList.get(0).getRect()[0]);
         videoBanner.setY(videoInfoList.get(0).getRect()[1]);
@@ -247,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         for (List<ParseXml.ImageInfo> infosList : imageInfoList) {
             for (ParseXml.ImageInfo info : infosList) {
                 Banner imageBanner = new Banner(this);
-                mainView.addView(imageBanner, -1);
+                mainView.addView(imageBanner);
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                 params.width = info.getRect()[2];
@@ -255,10 +268,10 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 imageBanner.setLayoutParams(params);
                 imageBanner.setX(info.getRect()[0]);
                 imageBanner.setY(info.getRect()[1]);
-                Log.d(TAG, "w: " + info.getRect()[2]);
-                Log.d(TAG, "h: " + info.getRect()[3]);
-                Log.d(TAG, "x: " + info.getRect()[0]);
-                Log.d(TAG, "y: " + info.getRect()[1]);
+//                Log.d(TAG, "w: " + info.getRect()[2]);
+//                Log.d(TAG, "h: " + info.getRect()[3]);
+//                Log.d(TAG, "x: " + info.getRect()[0]);
+//                Log.d(TAG, "y: " + info.getRect()[1]);
                 imageBanner.setBannerStyle(BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE);
                 imageBanner.setImageLoader(new MyLoader());
                 imageBanner.setImages(info.getNames());
@@ -319,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         mixBanner = new MixBanner(this);
 //        mRootView.removeAllViews();
 //        mRootView.addView(marqueeView);
-        mainView.addView(mixBanner, -1);
+        mainView.addView(mixBanner);
         exitArea.bringToFront();
         if (files.length != 0) {
             if (videoBanner != null && videoBanner.getVisibility() == View.VISIBLE) {
