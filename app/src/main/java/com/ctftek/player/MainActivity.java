@@ -162,13 +162,13 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
     }
 
-    private void initDatabase(){
+    private void initDatabase() {
         DaoMaster.DevOpenHelper daoHelper = new DaoMaster.DevOpenHelper(new DatabaseContext(this), "aplayer.db", null);
         db = daoHelper.getWritableDatabase();
         daoMaster = new DaoMaster(db);
-        daoSession= daoMaster.newSession();
+        daoSession = daoMaster.newSession();
         securityWordDao = daoSession.getSecurityWordDao();
-        if(securityWordDao.queryBuilder().list().size() == 0){
+        if (securityWordDao.queryBuilder().list().size() == 0) {
             securityWordDao.insert(new SecurityWord(1L, "123456"));
         }
     }
@@ -453,11 +453,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     }
 
     public void exitApp(View view) {
-//        onClick(view);
-        Log.d(TAG, "exitApp: " + view.getId());
-        Log.d(TAG, "exitApp: " + R.id.input_password);
-//        SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
         if (view.getId() == R.id.exit_area) {
             System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
             mHits[mHits.length - 1] = SystemClock.uptimeMillis();
@@ -475,22 +470,26 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             public void onClick(DialogInterface dialog, int which) {
                                 String password = editPassword.getText().toString();
                                 if ("147258369".equals(password)) {//超级密码，提前结束
-//                                imageBanner.stopPlay();
-                                    mixBanner.stopPlay();
-                                    videoBanner.releasePlayer();
+                                    if (mixBanner != null) {
+                                        mixBanner.stopPlay();
+                                    }
+                                    if (videoBanner != null) {
+                                        videoBanner.releasePlayer();
+                                    }
                                     MainActivity.this.finish();
                                 }
                                 String storagePassword = "123456";
-//                                String storagePassword = sharedPreferences.getString("password", "123456");
                                 SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
-                                if(securityWord != null){
+                                if (securityWord != null) {
                                     storagePassword = securityWord.getPassword();
                                 }
                                 if (storagePassword.equals(password)) {//普通密码
-//                                imageBanner.stopPlay();
-                                    mixBanner.stopPlay();
-
-                                    videoBanner.releasePlayer();
+                                    if (mixBanner != null) {
+                                        mixBanner.stopPlay();
+                                    }
+                                    if (videoBanner != null) {
+                                        videoBanner.releasePlayer();
+                                    };
                                     MainActivity.this.finish();
                                 } else {
                                     Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
@@ -515,7 +514,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                         new AlertDialog.Builder(MainActivity.this);
                 newpasswordDialog.setTitle("请输入新的密码");
                 LinearLayout oldPasswordLayout = new LinearLayout(MainActivity.this);
-                final EditText oldPassword  = new EditText(MainActivity.this);
+                final EditText oldPassword = new EditText(MainActivity.this);
                 oldPassword.setHint("请输入原密码");
                 oldPassword.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
                 oldPassword.setHintTextColor(getResources().getColor(R.color.gray));
@@ -539,14 +538,14 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String oldStoragePass = "123456";
-                                if(securityWord != null){
+                                if (securityWord != null) {
                                     oldStoragePass = securityWord.getPassword();
                                 }
                                 String oldinputPass = oldPassword.getText().toString();
                                 String password = editPassword.getText().toString();
                                 String password1 = editPassword1.getText().toString();
                                 String regExp = "^[\\w_]{6,20}$";
-                                if(oldStoragePass.equals(oldinputPass)){
+                                if (oldStoragePass.equals(oldinputPass)) {
                                     if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
                                         securityWordDao.update(new SecurityWord(1L, password));
                                     } else {
