@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -46,7 +47,12 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.ctftek.player.banner.MixBanner;
 import com.ctftek.player.banner.VideoBanner;
+import com.ctftek.player.bean.DaoMaster;
+import com.ctftek.player.bean.DaoSession;
 import com.ctftek.player.bean.ScrolltextBean;
+import com.ctftek.player.bean.SecurityWord;
+import com.ctftek.player.bean.SecurityWordDao;
+import com.ctftek.player.controller.DatabaseContext;
 import com.ctftek.player.sax.ParseXml;
 import com.ctftek.player.ui.ScrollTextView;
 import com.xdandroid.hellodaemon.DaemonEnv;
@@ -94,6 +100,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     final static long DURATION = 3 * 1000;//规定有效时间
     long[] mHits = new long[COUNTS];
 
+    //database
+    private SQLiteDatabase db;
+    private DaoMaster daoMaster;
+    private DaoSession daoSession;
+    private SecurityWordDao securityWordDao;
+
     private List<String> fileList;
     private List<ParseXml.VideoInfo> videoInfoList;
     private List<String> videoFilelist = new ArrayList<>();
@@ -125,16 +137,15 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-        if (!initLegalDevice()) {
-            finish();
-            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-            return;
-        }
+//        if (!initLegalDevice()) {
+//            finish();
+//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
         setContentView(R.layout.activity_main);
-
 //        Intent i = new Intent(this, TestActivity.class);
 //        startActivity(i);
-
+        initDatabase();
         initView();
         initFile();
         if (iSplit()) {
@@ -149,6 +160,17 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
+    }
+
+    private void initDatabase(){
+        DaoMaster.DevOpenHelper daoHelper = new DaoMaster.DevOpenHelper(new DatabaseContext(this), "aplayer.db", null);
+        db = daoHelper.getWritableDatabase();
+        daoMaster = new DaoMaster(db);
+        daoSession= daoMaster.newSession();
+        securityWordDao = daoSession.getSecurityWordDao();
+        if(securityWordDao.queryBuilder().list().size() == 0){
+            securityWordDao.insert(new SecurityWord(1L, "123456"));
+        }
     }
 
     private boolean iSplit() {
@@ -434,8 +456,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 //        onClick(view);
         Log.d(TAG, "exitApp: " + view.getId());
         Log.d(TAG, "exitApp: " + R.id.input_password);
-        SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        SharedPreferences sharedPreferences = getSharedPreferences("password", Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
         if (view.getId() == R.id.exit_area) {
             System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
             mHits[mHits.length - 1] = SystemClock.uptimeMillis();
@@ -452,8 +474,19 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String password = editPassword.getText().toString();
-                                String storagePassword = sharedPreferences.getString("password", "123456");
-                                if (storagePassword.equals(password)) {
+                                if ("147258369".equals(password)) {//超级密码，提前结束
+//                                imageBanner.stopPlay();
+                                    mixBanner.stopPlay();
+                                    videoBanner.releasePlayer();
+                                    MainActivity.this.finish();
+                                }
+                                String storagePassword = "123456";
+//                                String storagePassword = sharedPreferences.getString("password", "123456");
+                                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
+                                if(securityWord != null){
+                                    storagePassword = securityWord.getPassword();
+                                }
+                                if (storagePassword.equals(password)) {//普通密码
 //                                imageBanner.stopPlay();
                                     mixBanner.stopPlay();
 
@@ -481,6 +514,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 final AlertDialog.Builder newpasswordDialog =
                         new AlertDialog.Builder(MainActivity.this);
                 newpasswordDialog.setTitle("请输入新的密码");
+                LinearLayout oldPasswordLayout = new LinearLayout(MainActivity.this);
+                final EditText oldPassword  = new EditText(MainActivity.this);
+                oldPassword.setHint("请输入原密码");
+                oldPassword.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+                oldPassword.setHintTextColor(getResources().getColor(R.color.gray));
                 LinearLayout passwordLayout = new LinearLayout(MainActivity.this);
                 final EditText editPassword = new EditText(MainActivity.this);
                 editPassword.setHint("输入密码");
@@ -491,23 +529,33 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 editPassword1.setHintTextColor(getResources().getColor(R.color.gray));
                 editPassword1.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
                 passwordLayout.setOrientation(LinearLayout.VERTICAL);
+                passwordLayout.addView(oldPassword);
                 passwordLayout.addView(editPassword);
                 passwordLayout.addView(editPassword1);
                 newpasswordDialog.setView(passwordLayout);
-
+                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
                 newpasswordDialog.setPositiveButton("确定",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                String oldStoragePass = "123456";
+                                if(securityWord != null){
+                                    oldStoragePass = securityWord.getPassword();
+                                }
+                                String oldinputPass = oldPassword.getText().toString();
                                 String password = editPassword.getText().toString();
                                 String password1 = editPassword1.getText().toString();
                                 String regExp = "^[\\w_]{6,20}$";
-                                if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
-                                    editor.putString("password", password);
-                                    editor.commit();
+                                if(oldStoragePass.equals(oldinputPass)){
+                                    if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
+                                        securityWordDao.update(new SecurityWord(1L, password));
+                                    } else {
+                                        Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字，或者两次密码输入不一致", Toast.LENGTH_SHORT).show();
+                                    }
                                 } else {
-                                    Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字，或者两次密码输入不一致", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "原密码错误", Toast.LENGTH_SHORT).show();
                                 }
+
                             }
                         });
                 newpasswordDialog.setNegativeButton("关闭",
