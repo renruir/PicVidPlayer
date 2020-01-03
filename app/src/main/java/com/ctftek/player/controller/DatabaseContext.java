@@ -26,12 +26,12 @@ public class DatabaseContext extends ContextWrapper {
      */
     @Override
     public File getDatabasePath(String name) {
-        File file = new File(Utils.databasePath);
+        File file = new File(Utils.filePath);
 
         if (!file.exists()) {//如果不存在,
             return mContext.getApplicationContext().getFilesDir();
         } else {//如果存在
-            String dbPath = Utils.databasePath + "/" + name;//数据库路径
+            String dbPath = Utils.filePath + "/" + name;//数据库路径
             //数据库文件是否创建成功
             boolean isFileCreateSuccess = false;
             //判断文件是否存在，不存在则创建该文件

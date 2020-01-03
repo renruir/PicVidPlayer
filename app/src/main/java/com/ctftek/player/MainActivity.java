@@ -23,6 +23,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.FileUtils;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -63,11 +64,18 @@ import com.youth.banner.loader.ImageLoader;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
@@ -112,7 +120,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private List<List<ParseXml.ImageInfo>> imageInfoList;
 
     private Handler mHandler = new Handler() {
-        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
@@ -131,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
     };
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,9 +150,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             return;
         }
         setContentView(R.layout.activity_main);
-//        Intent i = new Intent(this, TestActivity.class);
-//        startActivity(i);
-        initDatabase();
+//        initDatabase();
+        initPassword();
         initView();
         initFile();
         if (iSplit()) {
@@ -165,14 +170,54 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initPassword() {
         try {
-            String passPath = Utils.databasePath + "/aplayer.json";
-            if (!new File(passPath).exists()) {
-                return;
+            String passPath = Utils.databasePath + "/aplayer.properties";
+            File passwordFile = new File(passPath);
+            if (!passwordFile.exists()) {
+                passwordFile.createNewFile();
+                Properties pro = new Properties();
+                FileOutputStream fos = new FileOutputStream(passPath);
+                writePassword("123456");
+            } else {
+                Properties pro = new Properties();
+                InputStream is = new FileInputStream(Utils.databasePath + "/aplayer.properties");
+                pro.load(is);
+                String vaule = pro.getProperty("password");
+                Log.d(TAG, "initPassword: " + vaule);
             }
-            ScrolltextBean scrolltextBean = Utils.readScrollTextJson(passPath);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void writePassword(String password) {
+        Properties props = new Properties();
+        File file = new File(Utils.filePath + "/aplayer.properties");
+        try {
+            InputStream is = new FileInputStream(Utils.filePath + "/aplayer.properties");
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            props.load(is);
+            props.setProperty("password", password);
+            props.store(fileOutputStream, null);
+            String value = props.getProperty("password");
+            Log.d(TAG, "newest password: " + value);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getPassword(){
+        try {
+            Properties props = new Properties();
+            InputStream is = new FileInputStream(Utils.filePath + "/aplayer.properties");
+            props.load(is);
+            String value = props.getProperty("password");
+            return value;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void initDatabase() {
@@ -215,7 +260,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         inputArea.setZ(2);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void initScrollText() {
         marqueeView = new ScrollTextView(this);
         mainView.addView(marqueeView, -1);
@@ -249,7 +293,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         Utils.isExist(Utils.filePath);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void initXmlData() throws Exception {
         initScrollText();
 
@@ -359,7 +402,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         parentView.setBackground(drawable);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void initDate() {
         fileList = new ArrayList<>();
         File file = new File(Utils.filePath);
@@ -443,7 +485,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -498,9 +539,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                     MainActivity.this.finish();
                                 }
                                 String storagePassword = "123456";
-                                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
-                                if (securityWord != null) {
-                                    storagePassword = securityWord.getPassword();
+//                                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
+                                if (getPassword() != null) {
+                                    storagePassword = getPassword();
                                 }
                                 if (storagePassword.equals(password)) {//普通密码
                                     if (mixBanner != null) {
@@ -552,14 +593,14 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 passwordLayout.addView(editPassword);
                 passwordLayout.addView(editPassword1);
                 newpasswordDialog.setView(passwordLayout);
-                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
+//                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
                 newpasswordDialog.setPositiveButton("确定",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String oldStoragePass = "123456";
-                                if (securityWord != null) {
-                                    oldStoragePass = securityWord.getPassword();
+                                if (getPassword() != null) {
+                                    oldStoragePass = getPassword();
                                 }
                                 String oldinputPass = oldPassword.getText().toString();
                                 String password = editPassword.getText().toString();
@@ -567,7 +608,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                 String regExp = "^[\\w_]{6,20}$";
                                 if (oldStoragePass.equals(oldinputPass)) {
                                     if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
-                                        securityWordDao.update(new SecurityWord(1L, password));
+                                        writePassword(password);
+//                                        securityWordDao.update(new SecurityWord(1L, password));
                                     } else {
                                         Toast.makeText(MainActivity.this, "密码应为6到20位字母或数字，或者两次密码输入不一致", Toast.LENGTH_SHORT).show();
                                     }
@@ -654,14 +696,24 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                 @Override
                                 public void onFail(String errorMsg) {
                                     Log.d(TAG, "onFail:file copy exception");
-                                    try {
-                                        MainActivity.this.finish();
-                                        CrashApplication crashApplication = (CrashApplication) MainActivity.this.getApplication();
-                                        crashApplication.restartApp();
-//                                        throw new Exception("文件拷贝异常");
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                                    new AlertDialog.Builder(MainActivity.this)
+                                            .setTitle("Notice")
+                                            .setMessage("复制失败，请在复制过程中不要移动外置存储设备。请重启应用或者重新插入USB存储设备")
+                                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    Log.d(TAG, "onClick: dismiss dialog" );
+                                                    dialogInterface.dismiss();
+                                                }
+                                            })
+                                            .create().show();
+//                                    try {
+//                                        MainActivity.this.finish();
+//                                        CrashApplication crashApplication = (CrashApplication) MainActivity.this.getApplication();
+//                                        crashApplication.restartApp();
+//                                    } catch (Exception e) {
+//                                        e.printStackTrace();
+//                                    }
                                 }
 
                                 @Override
