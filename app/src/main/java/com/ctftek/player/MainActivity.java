@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private List<ParseXml.VideoInfo> videoInfoList;
     private List<String> videoFilelist = new ArrayList<>();
     private List<List<ParseXml.ImageInfo>> imageInfoList;
+
     private Handler mHandler = new Handler() {
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
@@ -160,6 +161,18 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
         getSecondaryStoragePath();
         Log.d(TAG, "onCreate size: " + Utils.getInternalMemorySize(this));
+    }
+
+    private void initPassword() {
+        try {
+            String passPath = Utils.databasePath + "/aplayer.json";
+            if (!new File(passPath).exists()) {
+                return;
+            }
+            ScrolltextBean scrolltextBean = Utils.readScrollTextJson(passPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void initDatabase() {
@@ -424,8 +437,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initPermissions() {
         int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_EXTERNAL_STORAGE);
         }
     }
 
@@ -434,14 +448,14 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent: " + intent.getData());
-        try{
+        try {
             if (iSplit()) {
                 initXmlData();
 
             } else {
                 initDate();
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -639,12 +653,12 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
                                 @Override
                                 public void onFail(String errorMsg) {
-                                    Log.d(TAG, "onFail: ");
+                                    Log.d(TAG, "onFail:file copy exception");
                                     try {
                                         MainActivity.this.finish();
                                         CrashApplication crashApplication = (CrashApplication) MainActivity.this.getApplication();
                                         crashApplication.restartApp();
-                                        throw new Exception("文件拷贝异常");
+//                                        throw new Exception("文件拷贝异常");
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
