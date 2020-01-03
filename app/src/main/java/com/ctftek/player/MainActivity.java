@@ -137,11 +137,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-//        if (!initLegalDevice()) {
-//            finish();
-//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
+        if (!initLegalDevice()) {
+            finish();
+            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+            return;
+        }
         setContentView(R.layout.activity_main);
 //        Intent i = new Intent(this, TestActivity.class);
 //        startActivity(i);
@@ -375,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             }
             try {
                 mixBanner.setDataList(fileList);
-                mixBanner.setImgDelyed(2000);
+                mixBanner.setImgDelyed(8000);
                 mixBanner.startBanner();
                 mixBanner.update();
                 mixBanner.startAutoPlay();
@@ -434,12 +434,17 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent: " + intent.getData());
-//        initDate();
-        try {
-            initXmlData();
-        } catch (Exception e) {
+        try{
+            if (iSplit()) {
+                initXmlData();
+
+            } else {
+                initDate();
+            }
+        } catch (Exception e){
             e.printStackTrace();
         }
+
     }
 
     public void onClick(View view) {
@@ -489,7 +494,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                     }
                                     if (videoBanner != null) {
                                         videoBanner.releasePlayer();
-                                    };
+                                    }
+                                    ;
                                     MainActivity.this.finish();
                                 } else {
                                     Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
@@ -598,6 +604,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             mText.setVisibility(View.VISIBLE);
         }
         if (mixBanner != null) {
+            Log.d(TAG, "updateMediaFile: 5555555555555");
             mixBanner.setVisibility(View.GONE);
             mixBanner.stopPlay();
             mixBanner.destroy();

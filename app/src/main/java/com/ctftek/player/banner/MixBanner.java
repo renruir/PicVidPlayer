@@ -296,7 +296,9 @@ public class MixBanner extends RelativeLayout implements View.OnTouchListener {
                             public void onAutoComplete(String url, Object... objects) {
                                 Log.d(TAG, "AutoComplete: " + url);
                                 videoView.release();
-                                mHandler.postDelayed(runnable, 50);
+                                if(mHandler != null){
+                                    mHandler.postDelayed(runnable, 50);
+                                }
                             }
 
                             @Override
@@ -453,8 +455,9 @@ public class MixBanner extends RelativeLayout implements View.OnTouchListener {
             Log.d(TAG, "stopPlay: " + autoCurrIndex);
             mHandler.removeCallbacks(runnable);
             if (view1 instanceof StandardGSYVideoPlayer) {
-                StandardGSYVideoPlayer videoView = (StandardGSYVideoPlayer) view1;
-                videoView.release();
+                StandardGSYVideoPlayer videoPlayer = (StandardGSYVideoPlayer) view1;
+                videoPlayer.getGSYVideoManager().stop();
+                videoPlayer.release();
             } else {
                 ImageView imageView = (ImageView)view1;
                 imageView.setVisibility(GONE);

@@ -13,6 +13,7 @@ import java.io.IOException;
 
 public class DatabaseContext extends ContextWrapper {
 
+    private final static String TAG = DatabaseContext.class.getName();
     private Context mContext;
 
     public DatabaseContext(Context base) {
@@ -30,7 +31,7 @@ public class DatabaseContext extends ContextWrapper {
         if (!file.exists()) {//如果不存在,
             return mContext.getApplicationContext().getFilesDir();
         } else {//如果存在
-            String dbPath = Utils.filePath + "/" + name;//数据库路径
+            String dbPath = Utils.databasePath + "/" + name;//数据库路径
             //数据库文件是否创建成功
             boolean isFileCreateSuccess = false;
             //判断文件是否存在，不存在则创建该文件

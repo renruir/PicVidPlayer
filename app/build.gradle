@@ -55,5 +55,7 @@ dependencies {
     implementation 'com.shuyu:GSYVideoPlayer-exo2:7.1.2'
     implementation 'com.youth.banner:banner:1.4.2'
     implementation 'com.alibaba:fastjson:1.2.54'
-    implementation 'org.greenrobot:greendao:3.2.2' // add library
+    implementation 'org.greenrobot:greendao:3.2.2'
+    implementation 'androidx.room:room-runtime:2.2.3'
+    annotationProcessor 'androidx.room:room-compiler:2.2.3'// add library
 }
