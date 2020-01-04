@@ -20,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.ctftek.player.Utils;
 import com.ctftek.player.ui.GalleryTransformer;
+import com.ctftek.player.ui.NoAnimationViewPager;
 import com.ctftek.player.video.CustomManager;
 //import com.ctftek.player.video.EmptyControlVideo;
 import com.ctftek.player.video.EmptyControlVideo;
@@ -46,7 +47,7 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 public class MixBanner extends RelativeLayout implements View.OnTouchListener {
 
     private static final String TAG = MixBanner.class.getName();
-    private ViewPager viewPager;
+    private NoAnimationViewPager viewPager;
     private final int UPTATE_VIEWPAGER = 100;
     //图片默认时间间隔
     private int imgDelyed = 2000;
@@ -114,7 +115,7 @@ public class MixBanner extends RelativeLayout implements View.OnTouchListener {
 
     private void init() {
         time = new Time();
-        viewPager = new ViewPager(getContext());
+        viewPager = new NoAnimationViewPager(getContext());
         LinearLayout.LayoutParams vp_param = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         viewPager.setLayoutParams(vp_param);
         viewPager.setPageTransformer(true, new GalleryTransformer() {

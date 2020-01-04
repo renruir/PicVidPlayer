@@ -1,13 +1,6 @@
 package com.ctftek.player;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
-import android.animation.LayoutTransition;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
@@ -18,12 +11,8 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.FileUtils;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -39,13 +28,14 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.bitmap.CenterCrop;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.ctftek.player.banner.MixBanner;
 import com.ctftek.player.banner.VideoBanner;
 import com.ctftek.player.bean.DaoMaster;
@@ -55,11 +45,10 @@ import com.ctftek.player.bean.SecurityWord;
 import com.ctftek.player.bean.SecurityWordDao;
 import com.ctftek.player.controller.DatabaseContext;
 import com.ctftek.player.sax.ParseXml;
+import com.ctftek.player.ui.MyPageTransformer;
 import com.ctftek.player.ui.ScrollTextView;
-import com.xdandroid.hellodaemon.DaemonEnv;
 import com.youth.banner.Banner;
 import com.youth.banner.BannerConfig;
-import com.youth.banner.Transformer;
 import com.youth.banner.loader.ImageLoader;
 
 import java.io.File;
@@ -68,16 +57,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
-
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private static final String TAG = MainActivity.class.getName();
@@ -144,11 +127,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-        if (!initLegalDevice()) {
-            finish();
-            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-            return;
-        }
+//        if (!initLegalDevice()) {
+//            finish();
+//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
         setContentView(R.layout.activity_main);
 //        initDatabase();
         initPassword();
@@ -207,14 +190,14 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
     }
 
-    private String getPassword(){
+    private String getPassword() {
         try {
             Properties props = new Properties();
             InputStream is = new FileInputStream(Utils.filePath + "/aplayer.properties");
             props.load(is);
             String value = props.getProperty("password");
             return value;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -322,10 +305,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         params1.width = videoInfoList.get(0).getRect()[2];
         params1.height = videoInfoList.get(0).getRect()[3];
-//        Log.d(TAG, "w: " + videoInfoList.get(0).getRect()[2]);
-//        Log.d(TAG, "h: " + videoInfoList.get(0).getRect()[3]);
-//        Log.d(TAG, "x: " + videoInfoList.get(0).getRect()[0]);
-//        Log.d(TAG, "y: " + videoInfoList.get(0).getRect()[1]);
         videoBanner.setLayoutParams(params1);
         videoBanner.setX(videoInfoList.get(0).getRect()[0]);
         videoBanner.setY(videoInfoList.get(0).getRect()[1]);
@@ -346,10 +325,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 imageBanner.setLayoutParams(params);
                 imageBanner.setX(info.getRect()[0]);
                 imageBanner.setY(info.getRect()[1]);
-//                Log.d(TAG, "w: " + info.getRect()[2]);
-//                Log.d(TAG, "h: " + info.getRect()[3]);
-//                Log.d(TAG, "x: " + info.getRect()[0]);
-//                Log.d(TAG, "y: " + info.getRect()[1]);
                 imageBanner.setBannerStyle(BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE);
                 imageBanner.setImageLoader(new MyLoader());
                 imageBanner.setImages(info.getNames());
@@ -358,7 +333,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                     list_title.add("");
                 }
                 imageBanner.setBannerTitles(list_title);
-                imageBanner.setBannerAnimation(Transformer.Default);
+//                imageBanner.setBannerAnimation(Transformer.DepthPage);
+                imageBanner.setBannerAnimation(new MyPageTransformer().getClass());
                 imageBanner.setDelayTime(info.getDelay() * 1000);
                 imageBanner.isAutoPlay(true);
                 imageBanner.setIndicatorGravity(BannerConfig.CENTER);
@@ -451,7 +427,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             Glide.with(context)
 //                    .asBitmap()
                     .load(new File((String) path))
-                    .transforms(new CenterCrop(), new RoundedCorners(20))
                     .into(imageView);
         }
     }
@@ -668,8 +643,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         if (marqueeView != null) {
             marqueeView.setVisibility(View.GONE);
         }
-
+        parentView.removeAllViews();//解决可能出现的重影问题
         parentView.setBackgroundResource(0);
+
         try {
             CopyPasteUtil.build()
                     .setIsNeesDefaulProgressDialog(true)
@@ -702,7 +678,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                             .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                                    Log.d(TAG, "onClick: dismiss dialog" );
+                                                    Log.d(TAG, "onClick: dismiss dialog");
                                                     dialogInterface.dismiss();
                                                 }
                                             })
@@ -727,7 +703,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             e.printStackTrace();
         }
 
-//        imageBanner.setVisibility(View.GONE);
     }
 
     @Override
