@@ -127,11 +127,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-//        if (!initLegalDevice()) {
-//            finish();
-//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
+        if (!initLegalDevice()) {
+            finish();
+            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+            return;
+        }
         setContentView(R.layout.activity_main);
 //        initDatabase();
         initPassword();
@@ -157,8 +157,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             File passwordFile = new File(passPath);
             if (!passwordFile.exists()) {
                 passwordFile.createNewFile();
-                Properties pro = new Properties();
-                FileOutputStream fos = new FileOutputStream(passPath);
                 writePassword("123456");
             } else {
                 Properties pro = new Properties();
@@ -174,9 +172,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void writePassword(String password) {
         Properties props = new Properties();
-        File file = new File(Utils.filePath + "/aplayer.properties");
+        File file = new File(Utils.databasePath + "/aplayer.properties");
         try {
-            InputStream is = new FileInputStream(Utils.filePath + "/aplayer.properties");
+            InputStream is = new FileInputStream(Utils.databasePath + "/aplayer.properties");
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             props.load(is);
             props.setProperty("password", password);
@@ -193,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private String getPassword() {
         try {
             Properties props = new Properties();
-            InputStream is = new FileInputStream(Utils.filePath + "/aplayer.properties");
+            InputStream is = new FileInputStream(Utils.databasePath + "/aplayer.properties");
             props.load(is);
             String value = props.getProperty("password");
             return value;
@@ -368,14 +366,16 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
 
         Drawable drawable = null;
-        try {
-            String path = Utils.filePath + "/" + parseXml.getBackgroundImage();
-            Log.d(TAG, "path: " + path);
-            drawable = Drawable.createFromStream(new FileInputStream(path), parseXml.getBackgroundImage());
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(parseXml.getBackgroundImage()!= null && !parseXml.getBackgroundImage().isEmpty()){
+            try {
+                String path = Utils.filePath + "/" + parseXml.getBackgroundImage();
+                Log.d(TAG, "path: " + path);
+                drawable = Drawable.createFromStream(new FileInputStream(path), parseXml.getBackgroundImage());
+                parentView.setBackground(drawable);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        parentView.setBackground(drawable);
     }
 
     private void initDate() {
@@ -388,7 +388,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 //        mRootView.removeAllViews();
 //        mRootView.addView(marqueeView);
         mainView.addView(mixBanner);
-        exitArea.bringToFront();
         if (files.length != 0) {
             if (videoBanner != null && videoBanner.getVisibility() == View.VISIBLE) {
                 videoBanner.setVisibility(View.GONE);
@@ -406,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             }
             try {
                 mixBanner.setDataList(fileList);
-                mixBanner.setImgDelyed(8000);
+                mixBanner.setImgDelyed(1000);
                 mixBanner.startBanner();
                 mixBanner.update();
                 mixBanner.startAutoPlay();
@@ -456,7 +455,8 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_EXTERNAL_STORAGE);
+            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+
         }
     }
 
@@ -643,7 +643,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         if (marqueeView != null) {
             marqueeView.setVisibility(View.GONE);
         }
-        parentView.removeAllViews();//解决可能出现的重影问题
+        mainView.removeAllViews();//解决可能出现的重影问题
         parentView.setBackgroundResource(0);
 
         try {

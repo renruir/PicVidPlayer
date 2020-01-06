@@ -44,10 +44,10 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
  * Created by steven on 2018/5/14.
  */
 
-public class MixBanner extends RelativeLayout implements View.OnTouchListener {
+public class MixBanner extends RelativeLayout {
 
     private static final String TAG = MixBanner.class.getName();
-    private NoAnimationViewPager viewPager;
+    private ViewPager viewPager;
     private final int UPTATE_VIEWPAGER = 100;
     //图片默认时间间隔
     private int imgDelyed = 2000;
@@ -115,7 +115,7 @@ public class MixBanner extends RelativeLayout implements View.OnTouchListener {
 
     private void init() {
         time = new Time();
-        viewPager = new NoAnimationViewPager(getContext());
+        viewPager = new ViewPager(getContext());
         LinearLayout.LayoutParams vp_param = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         viewPager.setLayoutParams(vp_param);
         viewPager.setPageTransformer(true, new GalleryTransformer() {
@@ -345,11 +345,11 @@ public class MixBanner extends RelativeLayout implements View.OnTouchListener {
         }
     };
 
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        Log.d(TAG, "onTouch: 2222");
-        return true;
-    }
+//    @Override
+//    public boolean onTouch(View view, MotionEvent motionEvent) {
+//        Log.d(TAG, "onTouch: 2222");
+//        return true;
+//    }
 
     /**
      * 这个类获取视频长度，以及已经播放的时间

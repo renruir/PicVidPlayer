@@ -2,6 +2,7 @@ package com.ctftek.player.ui;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import androidx.viewpager.widget.ViewPager;
 
@@ -24,6 +25,6 @@ public class NoAnimationViewPager extends ViewPager {
     public void setCurrentItem(int item) {
         //去除页面切换时的滑动翻页效果
         super.setCurrentItem(item, false);
-//        Log.d("renrui", "setCurrentItem: " + item);
+        Log.d("renrui", "setCurrentItem: " + item);
     }
 }

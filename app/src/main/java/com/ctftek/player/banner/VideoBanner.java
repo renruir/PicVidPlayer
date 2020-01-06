@@ -34,26 +34,26 @@ public class VideoBanner extends LinearLayout {
     public VideoBanner(Context context) {
         super(context);
         mContext = context;
-        init();
+//        init();
     }
 
     public VideoBanner(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
-        init();
+//        init();
     }
 
     public VideoBanner(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
-        init();
+//        init();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public VideoBanner(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         mContext = context;
-        init();
+//        init();
     }
 
     private void init() {
@@ -85,6 +85,7 @@ public class VideoBanner extends LinearLayout {
 
     public void setVideoList(List<String> data) {
         Log.d(TAG, "setDataList: " + data.size());
+        init();
         currIndex = 0;
         if (this.videoList.size() != 0) {
             videoList.clear();
@@ -110,6 +111,7 @@ public class VideoBanner extends LinearLayout {
                 super.onPrepared(url, objects);
                 Log.d(TAG, "onPrepared: 888888888");
 //                doPlay(videoPlayer, currIndex);
+//                videoPlayer.startPlayLogic();
             }
 
             @Override
@@ -136,7 +138,7 @@ public class VideoBanner extends LinearLayout {
         vPlay.setUp(videoList.get(currIndex), true, "");
         vPlay.setPlayPosition(currIndex);
         vPlay.startPlayLogic();
-        removeAllViews();
+//        removeAllViews();
         addView(videoPlayer);
     }
 
