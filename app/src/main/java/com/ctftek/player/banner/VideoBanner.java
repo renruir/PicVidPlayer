@@ -138,7 +138,7 @@ public class VideoBanner extends LinearLayout {
         vPlay.setUp(videoList.get(currIndex), true, "");
         vPlay.setPlayPosition(currIndex);
         vPlay.startPlayLogic();
-//        removeAllViews();
+        removeAllViews();
         addView(videoPlayer);
     }
 

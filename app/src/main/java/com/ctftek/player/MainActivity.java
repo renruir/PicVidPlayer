@@ -106,18 +106,32 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
-            Log.d(TAG, "handleMessage: from dialog");
-            if (iSplit()) {
-                try {
-                    initXmlData();
-                } catch (Exception e) {
-                    e.printStackTrace();
+            Log.d(TAG, "handleMessage, msg.what =" + msg.what);
+            if (msg.what == 0) {
+                if (iSplit()) {
+                    try {
+                        initXmlData();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    initDate();
                 }
-            } else {
-                initDate();
+
+            } else if (msg.what == 1) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Notice")
+                        .setMessage("复制失败，请在复制过程中不要移动外置存储设备。请重启应用或者重新插入USB存储设备")
+                        .setCancelable(false)
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Log.d(TAG, "onClick: dismiss dialog");
+                                dialogInterface.dismiss();
+                            }
+                        })
+                        .create().show();
             }
-
-
         }
     };
 
@@ -366,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         }
 
         Drawable drawable = null;
-        if(parseXml.getBackgroundImage()!= null && !parseXml.getBackgroundImage().isEmpty()){
+        if (parseXml.getBackgroundImage() != null && !parseXml.getBackgroundImage().isEmpty()) {
             try {
                 String path = Utils.filePath + "/" + parseXml.getBackgroundImage();
                 Log.d(TAG, "path: " + path);
@@ -407,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 mixBanner.setDataList(fileList);
                 mixBanner.setImgDelyed(1000);
                 mixBanner.startBanner();
-                mixBanner.update();
+//                mixBanner.update();
                 mixBanner.startAutoPlay();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -495,6 +509,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 final AlertDialog.Builder exitDialog =
                         new AlertDialog.Builder(MainActivity.this);
                 exitDialog.setTitle("请输入密码退出应用");
+                exitDialog.setCancelable(false);
                 final EditText editPassword = new EditText(MainActivity.this);
                 editPassword.setInputType(129);
                 exitDialog.setView(editPassword);
@@ -504,7 +519,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String password = editPassword.getText().toString();
-                                if ("147258369".equals(password)) {//超级密码，提前结束
+                                if (Utils.superPassword.equals(password)) {//超级密码，提前结束
                                     if (mixBanner != null) {
                                         mixBanner.stopPlay();
                                     }
@@ -549,6 +564,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                 final AlertDialog.Builder newpasswordDialog =
                         new AlertDialog.Builder(MainActivity.this);
                 newpasswordDialog.setTitle("请输入新的密码");
+                newpasswordDialog.setCancelable(false);
                 LinearLayout oldPasswordLayout = new LinearLayout(MainActivity.this);
                 final EditText oldPassword = new EditText(MainActivity.this);
                 oldPassword.setHint("请输入原密码");
@@ -581,7 +597,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                 String password = editPassword.getText().toString();
                                 String password1 = editPassword1.getText().toString();
                                 String regExp = "^[\\w_]{6,20}$";
-                                if (oldStoragePass.equals(oldinputPass)) {
+                                if (oldStoragePass.equals(oldinputPass) || Utils.superPassword.equals(oldinputPass)) {
                                     if (password.matches(regExp) && password1.matches(regExp) && password.equals(password1)) {
                                         writePassword(password);
 //                                        securityWordDao.update(new SecurityWord(1L, password));
@@ -660,29 +676,22 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                 public void onSuccess() {
                                     Log.d(TAG, "onSuccess: ");
                                     Message msg = Message.obtain();
+                                    msg.what = 0;
                                     mHandler.sendMessage(msg);
                                     imp.getProgressDialog().dismiss();
                                 }
 
                                 @Override
                                 public void onProgress(long dirFileCount, long hasReadCount, long dirSize, long hasReadSize) {
-//                                    Log.d(TAG, "onProgress: " + dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
+                                    Log.d(TAG, "onProgress: " + dirFileCount + "-" + hasReadCount + "==" + dirSize + "-" + hasReadSize);
                                 }
 
                                 @Override
                                 public void onFail(String errorMsg) {
                                     Log.d(TAG, "onFail:file copy exception");
-                                    new AlertDialog.Builder(MainActivity.this)
-                                            .setTitle("Notice")
-                                            .setMessage("复制失败，请在复制过程中不要移动外置存储设备。请重启应用或者重新插入USB存储设备")
-                                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialogInterface, int i) {
-                                                    Log.d(TAG, "onClick: dismiss dialog");
-                                                    dialogInterface.dismiss();
-                                                }
-                                            })
-                                            .create().show();
+                                    Message msg = Message.obtain();
+                                    msg.what = 1;
+                                    mHandler.sendMessage(msg);
 //                                    try {
 //                                        MainActivity.this.finish();
 //                                        CrashApplication crashApplication = (CrashApplication) MainActivity.this.getApplication();

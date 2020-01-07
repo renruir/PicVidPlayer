@@ -83,7 +83,7 @@ public class CopyPasteUtil {
                                 fileOutputStream.close();
                                 fileChannelOutput.close();
                                 fileChannelInput.close();
-                            } catch (IOException e) {
+                            } catch (Exception e) {
                                 Log.e(TAG, "CopyPasteUtil copyFile error:" + e.getMessage());
                             }
                         }
@@ -249,6 +249,10 @@ public class CopyPasteUtil {
                     transferSize += fileChannelOutput.write(buffer);
                     progress = (int) ((transferSize + hasReadSize) / (1024 * 1024));
                     if (progress > tempP) {
+//                        if(progress == 59){
+//                            Log.d(TAG, "copyFileMethod: " + progress);
+//                            throw new Exception();
+//                        }
                         tempP = progress;
                         if (null != progressDialog) {
 //                            progressDialog.setProgress(progress * 1024 * 1024);//M

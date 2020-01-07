@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -19,8 +18,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.ctftek.player.Utils;
-import com.ctftek.player.ui.GalleryTransformer;
-import com.ctftek.player.ui.NoAnimationViewPager;
+import com.ctftek.player.ui.NoScrollViewPager;
 import com.ctftek.player.video.CustomManager;
 //import com.ctftek.player.video.EmptyControlVideo;
 import com.ctftek.player.video.EmptyControlVideo;
@@ -47,7 +45,7 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 public class MixBanner extends RelativeLayout {
 
     private static final String TAG = MixBanner.class.getName();
-    private ViewPager viewPager;
+    private NoScrollViewPager viewPager;
     private final int UPTATE_VIEWPAGER = 100;
     //图片默认时间间隔
     private int imgDelyed = 2000;
@@ -115,16 +113,10 @@ public class MixBanner extends RelativeLayout {
 
     private void init() {
         time = new Time();
-        viewPager = new ViewPager(getContext());
+        viewPager = new NoScrollViewPager(getContext());
         LinearLayout.LayoutParams vp_param = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         viewPager.setLayoutParams(vp_param);
-        viewPager.setPageTransformer(true, new GalleryTransformer() {
-            @Override
-            public void transformPage(View page, float position) {
-//                Log.d(TAG,"page："+page+"，position："+position);
-            }
-        });
-        this.addView(viewPager, -1);
+        this.addView(viewPager);
     }
 
     public void setDataList(List<String> dataList) {
@@ -177,7 +169,7 @@ public class MixBanner extends RelativeLayout {
                             public void onPlayError(String url, Object... objects) {
                                 Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
                                 videoPlayer.release();
-                                viewPager.setCurrentItem(autoCurrIndex + 1);
+                                viewPager.setCurrentItem(autoCurrIndex + 1, false);
                                 mHandler.removeCallbacks(runnable);
                                 mHandler.postDelayed(runnable, 50);
                             }
@@ -200,6 +192,7 @@ public class MixBanner extends RelativeLayout {
                         Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv")) {
                     final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
                     initPlayer();
+                    Log.d(TAG, "setDataList: " + videoPlayer.getGSYVideoManager().getClass().getName());
                     videoPlayer.setPlayTag(TAG);
                     videoPlayer.setPlayPosition(0);
                     videoPlayer.setRotateViewAuto(true);
@@ -210,16 +203,23 @@ public class MixBanner extends RelativeLayout {
                     videoPlayer.setNeedLockFull(true);
                     videoPlayer.setLayoutParams(lp);
                     videoPlayer.setUp(url, true, "");
-                    videoPlayer.setLayoutParams(lp);
-                    videoPlayer.setUp(url, true, "");
+                    videoPlayer.startPlayLogic();
+                    views.add(videoPlayer);
                     videoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
 
                         @Override
                         public void onPlayError(String url, Object... objects) {
                             Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
-                            videoPlayer.release();
-                            mHandler.removeCallbacks(runnable);
-                            mHandler.postDelayed(runnable, 100);
+//                            videoPlayer.release();
+//                            viewPager.setCurrentItem(autoCurrIndex + 1);
+//                            mHandler.removeCallbacks(runnable);
+//                            mHandler.postDelayed(runnable, 50);
+                            videoPlayer.startPlayLogic();
+                        }
+
+                        @Override
+                        public void onPrepared(String url, Object... objects) {
+                            super.onPrepared(url, objects);
                         }
 
                         @Override
@@ -228,9 +228,6 @@ public class MixBanner extends RelativeLayout {
                             videoPlayer.startPlayLogic();
                         }
                     });
-                    videoPlayer.setUpLazy(url, false, null, null, "这是title");
-                    videoPlayer.startPlayLogic();
-                    views.add(videoPlayer);
                 } else {
                     ImageView imageView = new ImageView(getContext());
                     imageView.setLayoutParams(lp);
@@ -255,11 +252,56 @@ public class MixBanner extends RelativeLayout {
         mAdapter = new BannerViewAdapter(views);
         viewPager.setAdapter(mAdapter);
         viewPager.setOffscreenPageLimit(1);
-        viewPager.setCurrentItem(autoCurrIndex);
+        viewPager.setCurrentItem(autoCurrIndex, false);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                Log.d(TAG, "onPageScrolled: " + position);
+                //移除自动计时
+                mHandler.removeCallbacks(runnable);
+                //ViewPager跳转
+                int pageIndex = autoCurrIndex;
+                if (autoCurrIndex == 0) {
+                    pageIndex = views.size() - 2;
+                } else if (autoCurrIndex == views.size() - 1) {
+                    pageIndex = 1;
+                }
+                if (pageIndex != autoCurrIndex) {
+                    //无滑动动画，直接跳转
+                    viewPager.setCurrentItem(pageIndex, false);
+                }
 
+                //停止滑动时，重新自动倒计时
+                if (isAutoPlay && views.size() > 1) {
+                    View view1 = views.get(pageIndex);
+                    if (view1 instanceof StandardGSYVideoPlayer) {
+                        final EmptyControlVideo videoView = (EmptyControlVideo) view1;
+                        videoView.setVideoAllCallBack(new GSYSampleCallBack() {
+                            @Override
+                            public void onAutoComplete(String url, Object... objects) {
+                                Log.d(TAG, "AutoComplete: " + url);
+                                videoView.release();
+                                if(mHandler != null){
+                                    mHandler.postDelayed(runnable, 50);
+                                }
+                            }
+
+                            @Override
+                            public void onPlayError(String url, Object... objects) {
+                                Log.e(TAG, "onPlayError:" + url);
+                                videoView.release();
+                                mHandler.removeCallbacks(runnable);
+                                mHandler.postDelayed(runnable, 100);
+                            }
+
+                        });
+
+                    } else {
+                        delyedTime = imgDelyed;
+                        mHandler.postDelayed(runnable, delyedTime);
+                    }
+                    Log.d(TAG, "" + pageIndex + "--" + autoCurrIndex);
+                }
             }
 
             @Override
@@ -272,7 +314,7 @@ public class MixBanner extends RelativeLayout {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                Log.d(TAG, "1111:" + state);
+                Log.d(TAG, "Scroll state:" + state);
                 //移除自动计时
                 mHandler.removeCallbacks(runnable);
                 //ViewPager跳转
@@ -345,12 +387,6 @@ public class MixBanner extends RelativeLayout {
         }
     };
 
-//    @Override
-//    public boolean onTouch(View view, MotionEvent motionEvent) {
-//        Log.d(TAG, "onTouch: 2222");
-//        return true;
-//    }
-
     /**
      * 这个类获取视频长度，以及已经播放的时间
      */
@@ -378,7 +414,7 @@ public class MixBanner extends RelativeLayout {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case UPTATE_VIEWPAGER:
-                    viewPager.setCurrentItem(autoCurrIndex + 1);
+                    viewPager.setCurrentItem(autoCurrIndex + 1, false);
                     break;
             }
         }
