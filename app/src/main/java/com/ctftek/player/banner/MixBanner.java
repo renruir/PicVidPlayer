@@ -135,21 +135,15 @@ public class MixBanner extends RelativeLayout {
             options.fitCenter();
             //数据大于一条，才可以循环
             if (dataList.size() > 1) {
-                autoCurrIndex = 1;
+//                autoCurrIndex = 1;
                 //循环数组，将首位各加一条数据
-                for (int i = 0; i < dataList.size() + 2; i++) {
+                for (int i = 0; i < dataList.size(); i++) {
                     String url;
-                    if (i == 0) {
-                        url = dataList.get(dataList.size() - 1);
-                    } else if (i == dataList.size() + 1) {
-                        url = dataList.get(0);
-                    } else {
-                        url = dataList.get(i - 1);
-                    }
+                    url = dataList.get(i);
 
                     if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
-                            Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
-                            Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv") ) {
+                            Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") ||
+                            Utils.getFileExtend(url).equals("mpg") || Utils.getFileExtend(url).equals("wmv")) {
                         final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
                         initPlayer();
                         Log.d(TAG, "setDataList: " + videoPlayer.getGSYVideoManager().getClass().getName());
@@ -167,7 +161,7 @@ public class MixBanner extends RelativeLayout {
 
                             @Override
                             public void onPlayError(String url, Object... objects) {
-                                Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
+                                Log.d(TAG, "onPlayError: " + "文件格式错误:" + url + ", 跳过，播放下一个");
                                 videoPlayer.release();
                                 viewPager.setCurrentItem(autoCurrIndex + 1, false);
                                 mHandler.removeCallbacks(runnable);
@@ -188,8 +182,8 @@ public class MixBanner extends RelativeLayout {
                 autoCurrIndex = 0;
                 String url = dataList.get(0);
                 if (Utils.getFileExtend(url).equals("mp4") || Utils.getFileExtend(url).equals("mkv") ||
-                        Utils.getFileExtend(url).equals("avi") ||Utils.getFileExtend(url).equals("ts") ||
-                        Utils.getFileExtend(url).equals("mpg")||Utils.getFileExtend(url).equals("wmv")) {
+                        Utils.getFileExtend(url).equals("avi") || Utils.getFileExtend(url).equals("ts") ||
+                        Utils.getFileExtend(url).equals("mpg") || Utils.getFileExtend(url).equals("wmv")) {
                     final EmptyControlVideo videoPlayer = new EmptyControlVideo(getContext());
                     initPlayer();
                     Log.d(TAG, "setDataList: " + videoPlayer.getGSYVideoManager().getClass().getName());
@@ -209,11 +203,7 @@ public class MixBanner extends RelativeLayout {
 
                         @Override
                         public void onPlayError(String url, Object... objects) {
-                            Log.d(TAG, "onPlayError: " + "文件格式错误:" + url+", 跳过，播放下一个");
-//                            videoPlayer.release();
-//                            viewPager.setCurrentItem(autoCurrIndex + 1);
-//                            mHandler.removeCallbacks(runnable);
-//                            mHandler.postDelayed(runnable, 50);
+                            Log.d(TAG, "onPlayError: " + "文件格式错误:" + url + ", 跳过，播放下一个");
                             videoPlayer.startPlayLogic();
                         }
 
@@ -237,7 +227,7 @@ public class MixBanner extends RelativeLayout {
                     views.add(imageView);
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -248,7 +238,7 @@ public class MixBanner extends RelativeLayout {
     }
 
     public void startBanner() {
-        Log.d(TAG, "startBanner: 00000000");
+        Log.d(TAG, "startBanner");
         mAdapter = new BannerViewAdapter(views);
         viewPager.setAdapter(mAdapter);
         viewPager.setOffscreenPageLimit(1);
@@ -256,22 +246,10 @@ public class MixBanner extends RelativeLayout {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                Log.d(TAG, "onPageScrolled: " + position);
-                //移除自动计时
+                Log.d(TAG, "onPageScrolled position: " + position + ", autoCurrIndex: " + autoCurrIndex);
                 mHandler.removeCallbacks(runnable);
-                //ViewPager跳转
                 int pageIndex = autoCurrIndex;
-                if (autoCurrIndex == 0) {
-                    pageIndex = views.size() - 2;
-                } else if (autoCurrIndex == views.size() - 1) {
-                    pageIndex = 1;
-                }
-                if (pageIndex != autoCurrIndex) {
-                    //无滑动动画，直接跳转
-                    viewPager.setCurrentItem(pageIndex, false);
-                }
-
-                //停止滑动时，重新自动倒计时
+                viewPager.setCurrentItem(autoCurrIndex, false);
                 if (isAutoPlay && views.size() > 1) {
                     View view1 = views.get(pageIndex);
                     if (view1 instanceof StandardGSYVideoPlayer) {
@@ -281,7 +259,7 @@ public class MixBanner extends RelativeLayout {
                             public void onAutoComplete(String url, Object... objects) {
                                 Log.d(TAG, "AutoComplete: " + url);
                                 videoView.release();
-                                if(mHandler != null){
+                                if (mHandler != null) {
                                     mHandler.postDelayed(runnable, 50);
                                 }
                             }
@@ -300,7 +278,6 @@ public class MixBanner extends RelativeLayout {
                         delyedTime = imgDelyed;
                         mHandler.postDelayed(runnable, delyedTime);
                     }
-                    Log.d(TAG, "" + pageIndex + "--" + autoCurrIndex);
                 }
             }
 
@@ -314,52 +291,6 @@ public class MixBanner extends RelativeLayout {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                Log.d(TAG, "Scroll state:" + state);
-                //移除自动计时
-                mHandler.removeCallbacks(runnable);
-                //ViewPager跳转
-                int pageIndex = autoCurrIndex;
-                if (autoCurrIndex == 0) {
-                    pageIndex = views.size() - 2;
-                } else if (autoCurrIndex == views.size() - 1) {
-                    pageIndex = 1;
-                }
-                if (pageIndex != autoCurrIndex) {
-                    //无滑动动画，直接跳转
-                    viewPager.setCurrentItem(pageIndex, false);
-                }
-
-                //停止滑动时，重新自动倒计时
-                if (state == 0 && isAutoPlay && views.size() > 1) {
-                    View view1 = views.get(pageIndex);
-                    if (view1 instanceof StandardGSYVideoPlayer) {
-                        final EmptyControlVideo videoView = (EmptyControlVideo) view1;
-                        videoView.setVideoAllCallBack(new GSYSampleCallBack() {
-                            @Override
-                            public void onAutoComplete(String url, Object... objects) {
-                                Log.d(TAG, "AutoComplete: " + url);
-                                videoView.release();
-                                if(mHandler != null){
-                                    mHandler.postDelayed(runnable, 50);
-                                }
-                            }
-
-                            @Override
-                            public void onPlayError(String url, Object... objects) {
-                                Log.e(TAG, "onPlayError:" + url);
-                                videoView.release();
-                                mHandler.removeCallbacks(runnable);
-                                mHandler.postDelayed(runnable, 100);
-                            }
-
-                        });
-
-                    } else {
-                        delyedTime = imgDelyed;
-                        mHandler.postDelayed(runnable, delyedTime);
-                    }
-                    Log.d(TAG, "" + pageIndex + "--" + autoCurrIndex);
-                }
             }
         });
     }
@@ -414,6 +345,9 @@ public class MixBanner extends RelativeLayout {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case UPTATE_VIEWPAGER:
+                    if (autoCurrIndex >= views.size() - 1) {
+                        autoCurrIndex = -1;
+                    }
                     viewPager.setCurrentItem(autoCurrIndex + 1, false);
                     break;
             }
@@ -445,7 +379,7 @@ public class MixBanner extends RelativeLayout {
                         removeKey.add(customManagerEntry.getKey());
                     }
                 }
-                if(removeKey.size() > 0) {
+                if (removeKey.size() > 0) {
                     for (String key : removeKey) {
                         map.remove(key);
                     }
@@ -459,7 +393,7 @@ public class MixBanner extends RelativeLayout {
         }
     }
 
-    public void update(){
+    public void update() {
 //        mHandler.removeCallbacks(runnable);
         mAdapter.notifyDataSetChanged();
     }
@@ -485,9 +419,9 @@ public class MixBanner extends RelativeLayout {
         }
     }
 
-    public void stopPlay(){
+    public void stopPlay() {
         this.setVisibility(GONE);
-        if(views!= null && views.size() != 0){
+        if (views != null && views.size() != 0) {
             View view1 = views.get(autoCurrIndex);
             Log.d(TAG, "stopPlay: " + autoCurrIndex);
             mHandler.removeCallbacks(runnable);
@@ -496,7 +430,7 @@ public class MixBanner extends RelativeLayout {
                 videoPlayer.getGSYVideoManager().stop();
                 videoPlayer.release();
             } else {
-                ImageView imageView = (ImageView)view1;
+                ImageView imageView = (ImageView) view1;
                 imageView.setVisibility(GONE);
                 views.clear();
             }
@@ -506,13 +440,13 @@ public class MixBanner extends RelativeLayout {
     }
 
     public void destroy() {
-        if(mHandler != null){
+        if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
         }
         mHandler = null;
         time = null;
         runnable = null;
-        if(views != null){
+        if (views != null) {
             views.clear();
         }
         views = null;
