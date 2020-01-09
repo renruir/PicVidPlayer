@@ -11,6 +11,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -141,11 +142,11 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-        if (!initLegalDevice()) {
-            finish();
-            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-            return;
-        }
+//        if (!initLegalDevice()) {
+//            finish();
+//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
         setContentView(R.layout.activity_main);
 //        initDatabase();
         initPassword();
@@ -527,23 +528,23 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
                                         videoBanner.releasePlayer();
                                     }
                                     MainActivity.this.finish();
-                                }
-                                String storagePassword = "123456";
-//                                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
-                                if (getPassword() != null) {
-                                    storagePassword = getPassword();
-                                }
-                                if (storagePassword.equals(password)) {//普通密码
-                                    if (mixBanner != null) {
-                                        mixBanner.stopPlay();
-                                    }
-                                    if (videoBanner != null) {
-                                        videoBanner.releasePlayer();
-                                    }
-                                    ;
-                                    MainActivity.this.finish();
                                 } else {
-                                    Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
+                                    String storagePassword = "123456";
+//                                SecurityWord securityWord = securityWordDao.queryBuilder().list().get(0);
+                                    if (getPassword() != null) {
+                                        storagePassword = getPassword();
+                                    }
+                                    if (storagePassword.equals(password)) {//普通密码
+                                        if (mixBanner != null) {
+                                            mixBanner.stopPlay();
+                                        }
+                                        if (videoBanner != null) {
+                                            videoBanner.releasePlayer();
+                                        }
+                                        MainActivity.this.finish();
+                                    } else {
+                                        Toast.makeText(MainActivity.this, "密码错误", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
                             }
                         });
@@ -660,7 +661,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             marqueeView.setVisibility(View.GONE);
         }
         mainView.removeAllViews();//解决可能出现的重影问题
-        parentView.setBackgroundResource(0);
+        parentView.setBackgroundColor(Color.parseColor("#109DE3"));
 
         try {
             CopyPasteUtil.build()
