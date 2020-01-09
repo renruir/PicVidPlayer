@@ -45,7 +45,7 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 public class MixBanner extends RelativeLayout {
 
     private static final String TAG = MixBanner.class.getName();
-    private NoScrollViewPager viewPager;
+    private ViewPager viewPager;
     private final int UPTATE_VIEWPAGER = 100;
     //图片默认时间间隔
     private int imgDelyed = 2000;
@@ -113,7 +113,7 @@ public class MixBanner extends RelativeLayout {
 
     private void init() {
         time = new Time();
-        viewPager = new NoScrollViewPager(getContext());
+        viewPager = new ViewPager(getContext());
         LinearLayout.LayoutParams vp_param = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         viewPager.setLayoutParams(vp_param);
         this.addView(viewPager);

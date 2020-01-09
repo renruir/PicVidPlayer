@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             }
             try {
                 mixBanner.setDataList(fileList);
-                mixBanner.setImgDelyed(1000);
+                mixBanner.setImgDelyed(8000);
                 mixBanner.startBanner();
 //                mixBanner.update();
                 mixBanner.startAutoPlay();
