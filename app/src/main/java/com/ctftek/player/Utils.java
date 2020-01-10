@@ -32,8 +32,7 @@ public class Utils {
 //    public static final String filePath = "/sdcard/mediaResource";//for 小米8\
     public static final String legalPath = "/sys/class/leds/ctf-blue";
 //    public static final String databasePath = "/metadata/mConfig";
-    public static final String databasePath = "/mnt/sdcard";
-    public static final String passwordFile = ".aplayer.properties";
+    public static final String passwordFile = "aplayer.properties";
     public static final String superPassword = "ctf9876543210";
     private static Activity mActivity;
     private static Utils mUtils = null;

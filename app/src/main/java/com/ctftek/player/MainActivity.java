@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     final static int COUNTS = 5;//点击次数
     final static long DURATION = 3 * 1000;//规定有效时间
     long[] mHits = new long[COUNTS];
+    private String passwordPath;
 
     //database
     private SQLiteDatabase db;
@@ -142,11 +143,13 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         initPermissions();
         Intent intent = new Intent(this, StorageService.class);
         bindService(intent, serviceConnection, Service.BIND_AUTO_CREATE);
-//        if (!initLegalDevice()) {
-//            finish();
-//            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
+        passwordPath = getDir("aplayer", MODE_PRIVATE).getAbsolutePath();
+        Log.d(TAG, "onCreate: " + passwordPath);
+        if (!initLegalDevice()) {
+            finish();
+            Toast.makeText(this, "不合法设备", Toast.LENGTH_SHORT).show();
+            return;
+        }
         setContentView(R.layout.activity_main);
 //        initDatabase();
         initPassword();
@@ -168,14 +171,14 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initPassword() {
         try {
-            String passPath = Utils.databasePath + "/aplayer.properties";
+            String passPath = passwordPath + "/aplayer.properties";
             File passwordFile = new File(passPath);
             if (!passwordFile.exists()) {
                 passwordFile.createNewFile();
                 writePassword("123456");
             } else {
                 Properties pro = new Properties();
-                InputStream is = new FileInputStream(Utils.databasePath + "/aplayer.properties");
+                InputStream is = new FileInputStream(passwordPath + "/aplayer.properties");
                 pro.load(is);
                 String vaule = pro.getProperty("password");
                 Log.d(TAG, "initPassword: " + vaule);
@@ -187,9 +190,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void writePassword(String password) {
         Properties props = new Properties();
-        File file = new File(Utils.databasePath + "/aplayer.properties");
+        File file = new File(passwordPath + "/aplayer.properties");
         try {
-            InputStream is = new FileInputStream(Utils.databasePath + "/aplayer.properties");
+            InputStream is = new FileInputStream(passwordPath + "/aplayer.properties");
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             props.load(is);
             props.setProperty("password", password);
@@ -206,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private String getPassword() {
         try {
             Properties props = new Properties();
-            InputStream is = new FileInputStream(Utils.databasePath + "/aplayer.properties");
+            InputStream is = new FileInputStream(passwordPath + "/aplayer.properties");
             props.load(is);
             String value = props.getProperty("password");
             return value;
@@ -257,8 +260,10 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     }
 
     private void initScrollText() {
-        marqueeView = new ScrollTextView(this);
-        mainView.addView(marqueeView, -1);
+        if(marqueeView == null){
+            marqueeView = new ScrollTextView(this);
+            mainView.addView(marqueeView);
+        }
         marqueeView.setHorizontal(true);
         marqueeView.setScrollForever(true);
         marqueeView.setOnTouchListener(new View.OnTouchListener() {
