@@ -4,11 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Environment;
 import android.os.StatFs;
-import android.text.format.Formatter;
 import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.UiThread;
 
 import com.alibaba.fastjson.JSON;
 import com.ctftek.player.bean.ScrolltextBean;
@@ -23,6 +19,9 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Utils {
@@ -358,4 +357,26 @@ public class Utils {
         }
         return scrolltextBean;
     }
+
+    public static File[] orderByName(String filePath) {
+        File file = new File(filePath);
+        File[] files = file.listFiles();
+        List fileList = Arrays.asList(files);
+        Collections.sort(fileList, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                if (o1.isDirectory() && o2.isFile())
+                    return -1;
+                if (o1.isFile() && o2.isDirectory())
+                    return 1;
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        for (File file1 : files) {
+            System.out.println(file1.getName());
+
+        }
+        return files;
+    }
+
 }

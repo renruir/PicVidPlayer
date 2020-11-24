@@ -37,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.ctftek.player.banner.MixBanner;
 import com.ctftek.player.banner.VideoBanner;
 import com.ctftek.player.bean.DaoMaster;
@@ -58,6 +59,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -400,8 +402,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
 
     private void initDate() {
         fileList = new ArrayList<>();
-        File file = new File(Utils.filePath);
-        File[] files = file.listFiles();
+//        File file = new File(Utils.filePath);
+        File[] files = Utils.orderByName(Utils.filePath);
+//        File[] files = file.listFiles();
         initScrollText();
         Log.d(TAG, "initDate: " + files.length);
         mixBanner = new MixBanner(this);
@@ -443,10 +446,16 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
     private class MyLoader extends ImageLoader {
         @Override
         public void displayImage(Context context, Object path, ImageView imageView) {
-            Glide.with(context)
+            final WeakReference<ImageView> imageViewWeakReference = new WeakReference<>(imageView);
+            ImageView target = imageViewWeakReference.get();
+            if (target != null) {
+                Glide.with(context)
 //                    .asBitmap()
-                    .load(new File((String) path))
-                    .into(imageView);
+                        .load(new File((String) path))
+                        .skipMemoryCache(true)                      //禁止Glide内存缓存
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .into(target);
+            }
         }
     }
 
