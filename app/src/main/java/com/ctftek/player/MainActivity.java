@@ -153,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
             return;
         }
         setContentView(R.layout.activity_main);
-//        initDatabase();
         initPassword();
         initView();
         initFile();
@@ -265,6 +264,9 @@ public class MainActivity extends AppCompatActivity implements ServiceCallBack {
         if(marqueeView == null){
             marqueeView = new ScrollTextView(this);
             mainView.addView(marqueeView);
+        } else {
+            mainView.addView(marqueeView);
+            marqueeView.setVisibility(View.VISIBLE);
         }
         marqueeView.setHorizontal(true);
         marqueeView.setScrollForever(true);
